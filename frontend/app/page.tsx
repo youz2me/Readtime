@@ -35,8 +35,11 @@ const GENRES: Array<{ id: Genre; label: string; caption: string }> = [
   { id: "selfhelp", label: "자기계발", caption: "방법과 사례를 설명하는 글" },
 ];
 
-const PASSAGES: Record<Genre, { text: string; question: string; answers: string[]; correct: number }> = {
-  novel: {
+type Passage = { title: string; text: string; question: string; answers: string[]; correct: number };
+
+const PASSAGES: Record<Genre, Passage[]> = {
+  novel: [{
+    title: "등대가 보이는 집",
     text: `기차가 작은 역에 멈춘 것은 해가 산등성이 아래로 사라질 무렵이었다. 승강장에는 낡은 시계와 나무 의자 하나뿐이었고, 내린 사람은 지호 혼자였다. 그는 오래 접어둔 편지를 주머니에서 꺼냈다. 주소는 빗물에 번져 있었지만 마지막 문장만은 또렷했다. “등대가 보이는 집에서 기다릴게.”
 
 역을 나서자 바다 냄새가 났다. 지도에는 십 분이면 닿는 길이라고 적혀 있었지만 골목은 생각보다 복잡했다. 지호는 두 번이나 같은 우체통 앞을 지나쳤다. 세 번째로 그 자리에 섰을 때, 담장 너머에서 노란 불빛이 켜졌다. 그리고 누군가 그의 이름을 아주 오래전처럼 불렀다.
@@ -45,8 +48,19 @@ const PASSAGES: Record<Genre, { text: string; question: string; answers: string[
     question: "지호가 찾아가던 집을 알려준 단서는 무엇이었나요?",
     answers: ["노란 우체통", "등대가 보이는 집", "산등성이 아래의 역"],
     correct: 1,
-  },
-  essay: {
+  }, {
+    title: "마지막 버스",
+    text: `수연이 정류장에 도착했을 때 전광판에는 막차가 삼 분 뒤 도착한다고 적혀 있었다. 비는 가늘었지만 바람이 세서 우산이 자꾸 뒤집혔다. 벤치 아래에는 젖은 운동화 한 짝이 놓여 있었고, 맞은편 가게의 불은 이미 꺼져 있었다.
+
+버스가 모퉁이를 돌아오는 순간, 골목 끝에서 한 노인이 손을 흔들며 뛰어왔다. 운전기사는 문을 닫으려다 잠시 멈췄다. 수연은 올라타는 대신 우산을 든 채 노인 쪽으로 달려갔다. 함께 버스에 올랐을 때 기사는 아무 말 없이 난방 온도를 조금 높였다.
+
+창밖의 정류장이 멀어지자 노인은 고맙다며 작은 귤 두 개를 건넸다. 수연은 하나만 받아 들고 웃었다. 막차 안에는 젖은 옷 냄새와 귤 향이 천천히 섞이고 있었다.`,
+    question: "운전기사가 버스 문을 바로 닫지 않은 이유는 무엇인가요?",
+    answers: ["수연이 표를 찾고 있어서", "노인이 버스를 향해 뛰어오고 있어서", "운동화 주인을 기다리려고"],
+    correct: 1,
+  }],
+  essay: [{
+    title: "기록하지 않는 산책",
     text: `아침에 같은 길을 걷더라도 매일 같은 풍경을 보는 것은 아니다. 어떤 날에는 빵집 앞에 놓인 빈 상자가 먼저 보이고, 어떤 날에는 신호를 기다리는 사람의 구두가 눈에 들어온다. 풍경이 달라진 것이 아니라 내가 들고 나온 마음이 달라진 것이다.
 
 나는 한동안 산책에도 목적이 있어야 한다고 생각했다. 몇 걸음을 걸었는지 기록하고, 정해둔 시간 안에 돌아와야 마음이 놓였다. 그러다 어느 날 휴대전화를 집에 두고 나왔다. 처음에는 불안했지만 곧 걸음이 느려졌다. 골목의 작은 화분과 오래된 간판처럼 기록되지 않는 것들이 보이기 시작했다.
@@ -55,8 +69,19 @@ const PASSAGES: Record<Genre, { text: string; question: string; answers: string[
     question: "글쓴이가 휴대전화 없이 산책하며 발견한 변화는 무엇인가요?",
     answers: ["걸음이 더 빨라졌다", "기록되지 않던 것들이 보였다", "새로운 운동 경로를 만들었다"],
     correct: 1,
-  },
-  humanities: {
+  }, {
+    title: "오래 쓰는 물건",
+    text: `나는 새 물건을 사면 오래된 물건을 쉽게 버리곤 했다. 더 깨끗하고 편리한 것이 생겼으니 이전 것은 역할을 다했다고 생각했다. 하지만 할머니의 부엌에서는 손잡이가 닳은 냄비와 여러 번 꿰맨 앞치마가 여전히 제자리를 지키고 있었다.
+
+할머니는 물건을 아끼는 이유가 절약 때문만은 아니라고 말했다. 자주 쓴 물건에는 몸의 습관이 남고, 고쳐 쓴 흔적에는 그 시절의 생활이 남는다는 것이다. 낡은 냄비의 찌그러진 자국도 어느 명절에 생겼는지 할머니는 기억했다.
+
+그 뒤로 나는 물건이 고장 나면 먼저 고칠 수 있는지 살핀다. 모든 것을 평생 쓸 수는 없지만, 무엇을 버리는지 한 번 더 생각하는 동안 내 생활의 모양도 조금 더 선명하게 보이기 시작했다.`,
+    question: "할머니가 오래된 물건을 계속 사용하는 주된 이유는 무엇인가요?",
+    answers: ["새 물건을 살 수 없어서", "물건에 생활의 기억과 습관이 남아서", "부엌을 꾸미기 위해서"],
+    correct: 1,
+  }],
+  humanities: [{
+    title: "좋은 지도의 조건",
     text: `지도는 현실을 작게 옮겨놓은 그림처럼 보이지만, 실제로는 무엇을 남기고 무엇을 지울지 결정한 결과다. 모든 골목과 나무, 사람의 움직임을 한 장에 담을 수 없기 때문이다. 지도를 만드는 사람은 사용 목적에 따라 중요한 정보를 선택하고 나머지를 생략한다.
 
 지하철 노선도는 이 사실을 잘 보여준다. 실제 거리와 방향은 크게 왜곡되지만, 승객에게 중요한 환승 관계는 훨씬 선명해진다. 정확한 지형을 포기하는 대신 이동에 필요한 이해를 얻는 것이다. 그러므로 좋은 지도는 현실과 똑같은 지도가 아니라, 사용자의 질문에 잘 답하는 지도다.
@@ -65,8 +90,19 @@ const PASSAGES: Record<Genre, { text: string; question: string; answers: string[
     question: "글에서 좋은 지도를 판단하는 기준은 무엇인가요?",
     answers: ["현실과 완전히 똑같은가", "모든 정보를 담았는가", "사용자의 질문에 잘 답하는가"],
     correct: 2,
-  },
-  selfhelp: {
+  }, {
+    title: "도서관의 분류",
+    text: `도서관의 분류표는 책을 찾기 위한 주소이면서 지식을 바라보는 하나의 관점이다. 비슷한 주제의 책을 가까이 두면 독자는 원하는 책뿐 아니라 주변의 다른 책도 발견할 수 있다. 그러나 어떤 책은 역사이면서 과학이고, 문학이면서 사회에 대한 기록이기도 하다.
+
+한 권의 책을 단 하나의 칸에 넣는 순간 다른 가능성은 보이지 않게 된다. 디지털 검색은 여러 표지를 붙일 수 있어 이 문제를 줄이지만, 검색어를 모르면 발견하기 어렵다는 새로운 한계가 생긴다.
+
+그래서 좋은 지식 체계는 완벽한 분류를 주장하기보다 사용자가 다른 길로 이동할 수 있게 해야 한다. 분류는 정답이 아니라 탐색을 돕는 임시적인 안내선에 가깝다.`,
+    question: "글에서 분류를 '임시적인 안내선'이라고 표현한 이유는 무엇인가요?",
+    answers: ["모든 책은 한 주제에만 속해서", "분류가 여러 탐색 경로 중 하나이기 때문에", "디지털 검색은 분류가 필요 없어서"],
+    correct: 1,
+  }],
+  selfhelp: [{
+    title: "작게 시작하는 습관",
     text: `새로운 습관을 만들 때 가장 흔한 실수는 의욕이 가장 높은 날을 기준으로 계획하는 것이다. 첫날에는 한 시간 운동할 수 있지만 피곤한 수요일 저녁에도 같은 계획을 지키기는 어렵다. 좋은 계획은 최고의 나보다 평범한 나를 기준으로 설계되어야 한다.
 
 행동의 크기를 줄이면 시작을 방해하는 마찰도 작아진다. 매일 책 한 권을 읽겠다는 목표 대신 잠들기 전 두 쪽을 펼치는 행동을 정하는 식이다. 두 쪽은 작아 보이지만 반복되면 책을 펼치는 일이 더 이상 결심을 요구하지 않게 된다.
@@ -75,7 +111,17 @@ const PASSAGES: Record<Genre, { text: string; question: string; answers: string[
     question: "글에서 습관 계획의 기준으로 삼으라고 한 것은 무엇인가요?",
     answers: ["의욕이 가장 높은 날", "평범한 상태의 나", "가장 큰 성과를 낸 사람"],
     correct: 1,
-  },
+  }, {
+    title: "집중을 되찾는 시작",
+    text: `집중이 흐트러질 때 우리는 의지가 약하다고 자책하기 쉽다. 하지만 책상 위에 알림이 켜진 휴대전화가 있고 브라우저 탭이 열 개라면 누구라도 한 가지 일에 머물기 어렵다. 집중은 성격보다 환경의 영향을 더 많이 받는다.
+
+일을 시작하기 전 필요한 자료만 남기고 나머지 창을 닫아보자. 휴대전화는 손이 닿지 않는 곳에 두고, 끝낼 시간보다 시작할 시간을 정한다. 삼십 분 동안 완벽하게 몰입하겠다는 목표 대신 단 십 분만 한 작업에 머무르는 것이다.
+
+짧은 집중이 끝나면 무엇이 방해했는지 한 줄로 기록한다. 이 기록은 실패 목록이 아니라 다음 환경을 바꾸는 단서가 된다. 집중력을 기르는 일은 마음을 다잡는 것보다 방해 요소를 하나씩 줄이는 과정에 가깝다.`,
+    question: "글에서 집중을 높이기 위해 먼저 바꾸라고 한 것은 무엇인가요?",
+    answers: ["개인의 성격", "주변 환경과 방해 요소", "일의 마감 시간"],
+    correct: 1,
+  }],
 };
 
 const SAMPLE_BOOKS: Book[] = [
@@ -113,6 +159,7 @@ function getReadingSpeedGuide(wpm: number) {
 export default function Home() {
   const [step, setStep] = useState<Step>("calibrate");
   const [genre, setGenre] = useState<Genre>("novel");
+  const [passageIndex, setPassageIndex] = useState(0);
   const [phase, setPhase] = useState<TestPhase>("ready");
   const [startedAt, setStartedAt] = useState<number | null>(null);
   const [elapsed, setElapsed] = useState<number | null>(null);
@@ -129,7 +176,8 @@ export default function Home() {
   const [bestsellers, setBestsellers] = useState<Book[]>(BESTSELLERS);
   const [bestsellerDemoMode, setBestsellerDemoMode] = useState(false);
 
-  const passage = PASSAGES[genre];
+  const genrePassages = PASSAGES[genre];
+  const passage = genrePassages[passageIndex] ?? genrePassages[0];
   const charCount = passage.text.replace(/\s/g, "").length;
   const wordCount = passage.text.trim().split(/\s+/).length;
   const genreName = GENRES.find((item) => item.id === genre)?.label ?? "책";
@@ -174,7 +222,10 @@ export default function Home() {
   }, [books, bestsellers, selected]);
 
   function resetTest(nextGenre?: Genre) {
-    if (nextGenre) setGenre(nextGenre);
+    if (nextGenre) {
+      setGenre(nextGenre);
+      setPassageIndex(0);
+    }
     setPhase("ready");
     setStartedAt(null);
     setElapsed(null);
@@ -188,7 +239,8 @@ export default function Home() {
     }, 3600);
   }
 
-  function startTest() {
+  function startTest(random = false) {
+    if (random) setPassageIndex(Math.floor(Math.random() * genrePassages.length));
     setPhase("reading");
     setStartedAt(Date.now());
   }
@@ -339,8 +391,20 @@ export default function Home() {
                 <p>{genreName} 예시 글 · 약 {wordCount}단어</p>
                 <h2>글을 읽고 질문에 답해보세요.</h2>
                 <span>시작 버튼을 누르면 글과 타이머가 함께 나타납니다.<br />끝까지 읽은 뒤 내용 확인 질문에 답해야 측정이 완료돼요.</span>
+                <div className="sample-passage-options" aria-label={`${genreName} 측정용 글 선택`}>
+                  {genrePassages.map((item, index) => (
+                    <button
+                      key={item.title}
+                      className={passageIndex === index ? "selected" : ""}
+                      onClick={() => setPassageIndex(index)}
+                    >
+                      <small>측정용 글 {index + 1}</small>
+                      <strong>{item.title}</strong>
+                    </button>
+                  ))}
+                </div>
                 <div className="action-pair">
-                  <button className="primary" onClick={startTest}>읽기 시작</button>
+                  <button className="primary" onClick={() => startTest(true)}>랜덤 글로 읽기 시작</button>
                   {IS_LOCAL && (
                     <button className="secondary" onClick={skipCalibration}>
                       측정 건너뛰기
@@ -353,7 +417,7 @@ export default function Home() {
 
             {phase === "reading" && (
               <div className="reading-view">
-                <div className="reading-meta"><span>{genreName} 예시 글 · 읽은 뒤 질문 1개</span><span>측정 중</span></div>
+                <div className="reading-meta"><span>{genreName} · {passage.title} · 읽은 뒤 질문 1개</span><span>측정 중</span></div>
                 <article>{passage.text}</article>
                 <button className="primary wide" onClick={finishTest}>다 읽었어요</button>
               </div>
