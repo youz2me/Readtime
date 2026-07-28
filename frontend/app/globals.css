@@ -162,7 +162,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--blue); outl
   .result-hero { padding: 36px 24px 42px; grid-template-columns: minmax(130px, 30vw) 1fr; gap: 28px; }
   .result-book-cover { max-width: 230px; margin: 0 auto; }
   .result-facts { margin-top: 28px; gap: 16px; }
-  .recommend-grid { grid-template-columns: repeat(2, minmax(0, 180px)); }
+  .recommend-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
   .mini-cover { max-height: none; }
 }
 
@@ -204,7 +204,9 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--blue); outl
   .result-facts { grid-column: 1 / -1; grid-template-columns: repeat(3, 1fr); gap: 10px; }
   .result-facts strong { font-size: 15px; }
   .recommend-section { width: min(100% - 32px, 1100px); padding: 36px 0 20px; }
-  .recommend-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+  .recommend-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+  .recommend-grid strong { font-size: 13px; line-height: 1.35; }
+  .recommend-grid small { font-size: 10px; line-height: 1.4; }
   .toast { right: 16px; bottom: 16px; }
 }
 
