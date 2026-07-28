@@ -155,7 +155,7 @@ export default function Home() {
 
   const recommendations = useMemo(() => {
     if (!selected) return [];
-    const pool = [...books, ...SAMPLE_BOOKS];
+    const pool = [...books, ...bestsellers, ...SAMPLE_BOOKS];
     const unique = new Map<string, Book>();
     pool
       .filter((book) => book.supported && book.title !== selected.title)
@@ -168,7 +168,7 @@ export default function Home() {
       })
       .forEach((book) => unique.set(book.title, book));
     return [...unique.values()].slice(0, 3);
-  }, [books, selected]);
+  }, [books, bestsellers, selected]);
 
   function resetTest(nextGenre?: Genre) {
     if (nextGenre) setGenre(nextGenre);
@@ -241,7 +241,7 @@ export default function Home() {
 
   async function chooseBook(book: Book) {
     if (!book.supported) {
-      setSearchMessage("이 유형은 텍스트 밀도를 추정하기 어려워 아직 지원하지 않아요.");
+      showToast("만화·그림책처럼 텍스트 밀도를 추정하기 어려운 책은 아직 시간을 계산할 수 없어요.");
       return;
     }
     let resolvedBook = book;
@@ -257,7 +257,7 @@ export default function Home() {
       }
     }
     if (!resolvedBook.pages) {
-      setSearchMessage("이 책은 페이지 정보를 확인할 수 없어 아직 시간을 계산하기 어려워요.");
+      showToast("이 책은 페이지 정보를 확인할 수 없어 아직 시간을 계산하기 어려워요.");
       return;
     }
     setSelected(resolvedBook);
