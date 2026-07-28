@@ -87,10 +87,10 @@ function formatMinutes(minutes: number) {
   return hours ? `${hours}시간 ${rest ? `${rest}분` : ""}` : `${rest}분`;
 }
 
-function getReadingSpeedGuide(cpm: number) {
-  if (cpm < 350) return "천천히 읽는 편";
-  if (cpm < 650) return "보통 속도";
-  if (cpm < 900) return "빠른 편";
+function getReadingSpeedGuide(wpm: number) {
+  if (wpm < 120) return "천천히 읽는 편";
+  if (wpm < 290) return "일반 성인 범위";
+  if (wpm < 360) return "빠른 편";
   return "매우 빠른 편";
 }
 
@@ -101,6 +101,7 @@ export default function Home() {
   const [startedAt, setStartedAt] = useState<number | null>(null);
   const [elapsed, setElapsed] = useState<number | null>(null);
   const [cpm, setCpm] = useState(500);
+  const [wpm, setWpm] = useState(200);
   const [toast, setToast] = useState<{ id: number; message: string } | null>(null);
   const [query, setQuery] = useState("");
   const [books, setBooks] = useState<Book[]>([]);
@@ -112,9 +113,9 @@ export default function Home() {
 
   const passage = PASSAGES[genre];
   const charCount = passage.text.replace(/\s/g, "").length;
+  const wordCount = passage.text.trim().split(/\s+/).length;
   const genreName = GENRES.find((item) => item.id === genre)?.label ?? "책";
-  const speedGuide = getReadingSpeedGuide(cpm);
-  const speedRatio = (cpm / 500).toFixed(1);
+  const speedGuide = getReadingSpeedGuide(wpm);
 
   const recommendations = useMemo(() => {
     if (!selected) return [];
@@ -171,8 +172,10 @@ export default function Home() {
       showToast("내용 확인에 실패해 이번 측정은 제외했어요. 다시 측정해주세요.");
       return;
     }
-    const measured = Math.round(charCount / (elapsed / 60));
-    setCpm(Math.min(1200, Math.max(150, measured)));
+    const measuredCpm = Math.round(charCount / (elapsed / 60));
+    const measuredWpm = Math.round(wordCount / (elapsed / 60));
+    setCpm(Math.min(1200, Math.max(150, measuredCpm)));
+    setWpm(Math.min(500, Math.max(50, measuredWpm)));
     setPhase("complete");
   }
 
@@ -266,7 +269,7 @@ export default function Home() {
           <div className="test-stage">
             {phase === "ready" && (
               <div className="quiet-state">
-                <p>{genreName} 예시 글 · 약 {charCount}자</p>
+                <p>{genreName} 예시 글 · 약 {wordCount}단어</p>
                 <h2>글을 읽고 질문에 답해보세요.</h2>
                 <span>시작 버튼을 누르면 글과 타이머가 함께 나타납니다.<br />끝까지 읽은 뒤 내용 확인 질문에 답해야 측정이 완료돼요.</span>
                 <button className="primary" onClick={startTest}>읽기 시작</button>
@@ -296,13 +299,13 @@ export default function Home() {
             {phase === "complete" && (
               <div className="complete-view">
                 <p>측정 완료</p>
-                <h2>1분에 약 <strong>{cpm}자</strong>를 읽어요.</h2>
+                <h2>1분에 약 <strong>{wpm}단어</strong>를 읽어요.</h2>
                 <div className="speed-guide">
                   <strong>짧은 예시 글 기준 · {speedGuide}</strong>
-                  <span>Readtime 기본 속도인 1분 500자보다 약 {speedRatio}배 빨라요.</span>
+                  <span>한국어 성인 묵독 연구의 평균은 약 202단어/분이에요.</span>
                   <small>글의 길이와 난이도, 익숙한 정도에 따라 달라질 수 있어요.</small>
                 </div>
-                <span>{Math.round(elapsed ?? 0)}초 동안 {charCount}자를 읽은 결과예요. 이 속도로 책의 완독 시간을 계산할게요.</span>
+                <span>{Math.round(elapsed ?? 0)}초 동안 {wordCount}단어를 읽은 결과예요. 한국어는 띄어쓰기 단위로 세었어요.</span>
                 <div className="action-pair">
                   <button className="primary" onClick={() => go("search")}>책 검색하기</button>
                   <button className="secondary" onClick={() => resetTest()}>다시 측정</button>
@@ -316,7 +319,7 @@ export default function Home() {
       {step === "search" && (
         <section className="screen search-screen">
           <div className="screen-heading centered">
-            <p>나의 읽기 속도 1분에 약 {cpm}자 · 선호 장르 {genreName}</p>
+            <p>나의 읽기 속도 1분에 약 {wpm}단어 · 선호 장르 {genreName}</p>
             <h1>어떤 책을 읽을까요?</h1>
             <p className="lead">책을 선택하면 방금 측정한 속도로 완독 시간을 계산합니다.</p>
           </div>
@@ -353,7 +356,7 @@ export default function Home() {
               <div className="result-time">{formatMinutes(prediction.minutes)}</div>
               <span>예상 범위 {formatMinutes(prediction.range.low)} – {formatMinutes(prediction.range.high)}</span>
                 <div className="result-facts">
-                  <div><strong>약 {cpm}자</strong><span>1분에 읽는 양</span></div>
+                <div><strong>약 {wpm}단어</strong><span>1분에 읽는 양</span></div>
                   <div><strong>{genreName}</strong><span>선호 장르</span></div>
                   <div><strong>약 ±{formatMinutes(Math.max(
                     prediction.minutes - prediction.range.low,
