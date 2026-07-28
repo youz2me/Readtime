@@ -10,22 +10,22 @@ export async function generateMetadata(): Promise<Metadata> {
 
   return {
     metadataBase: new URL(origin),
-    title: "Readtime — 책 완독 시간 예측",
-    description: "페이지 수, 장르, 개인 읽기 속도로 책의 예상 완독 시간을 계산합니다.",
+    title: "Readtime — 내 속도로 계산하는 완독 시간",
+    description: "좋아하는 장르로 읽기 속도를 측정하고, 책의 예상 완독 시간과 다음 책을 추천받아보세요.",
     icons: {
       icon: "/favicon.svg",
       shortcut: "/favicon.svg",
     },
     openGraph: {
-      title: "Readtime — 이 책, 오늘 안에 읽을 수 있을까?",
-      description: "내 읽기 속도에 맞춘 책 완독 시간 예측기",
+      title: "Readtime — 내 속도로, 이 책은 얼마나 걸릴까?",
+      description: "장르별 읽기 속도 측정부터 완독 시간과 다음 책 추천까지",
       type: "website",
       images: [{ url: `${origin}/og.png`, width: 1748, height: 909, alt: "Readtime 책 완독 시간 예측" }],
     },
     twitter: {
       card: "summary_large_image",
-      title: "Readtime — 책 완독 시간 예측",
-      description: "내 읽기 속도에 맞춘 책 완독 시간 예측기",
+      title: "Readtime — 내 속도로 계산하는 완독 시간",
+      description: "장르별 읽기 속도 측정부터 완독 시간과 다음 책 추천까지",
       images: [`${origin}/og.png`],
     },
   };
