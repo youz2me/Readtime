@@ -94,3 +94,18 @@ export async function listBestsellers({ useMock, ttbKey } = {}) {
   url.searchParams.set('QueryType', 'Bestseller');
   return requestAladin(url);
 }
+
+export async function lookupBook(isbn, { useMock, ttbKey } = {}) {
+  if (useMock || !ttbKey) {
+    return MOCK_BOOKS.map(decorate).find((book) => book.isbn === isbn) ?? null;
+  }
+
+  const url = createRequestUrl('ItemLookUp.aspx', ttbKey);
+  url.searchParams.delete('MaxResults');
+  url.searchParams.delete('start');
+  url.searchParams.delete('SearchTarget');
+  url.searchParams.set('itemIdType', 'ISBN13');
+  url.searchParams.set('ItemId', isbn);
+  const [book] = await requestAladin(url);
+  return book ?? null;
+}

@@ -2,7 +2,7 @@ import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import { register, httpDuration, httpTotal } from './metrics.js';
 import { predict } from './predict.js';
-import { listBestsellers, searchBooks } from './aladin.js';
+import { listBestsellers, lookupBook, searchBooks } from './aladin.js';
 
 const PORT = Number(process.env.PORT ?? 8080);
 const HOST = process.env.HOST ?? '0.0.0.0'; // 컨테이너에서 외부 접근 가능하게
@@ -24,6 +24,10 @@ app.addHook('onRequest', (req, _reply, done) => {
   done();
 });
 app.addHook('onResponse', (req, reply, done) => {
+  if (typeof req.startAt !== 'bigint') {
+    done();
+    return;
+  }
   const route = req.routeOptions?.url ?? req.url;
   const labels = { method: req.method, route, status: reply.statusCode };
   const seconds = Number(process.hrtime.bigint() - req.startAt) / 1e9;
@@ -52,6 +56,15 @@ app.get('/api/search', async (req) => {
 app.get('/api/bestsellers', async () => {
   const items = await listBestsellers({ useMock: USE_MOCK, ttbKey: process.env.ALADIN_TTB_KEY });
   return { count: items.length, items };
+});
+
+app.get('/api/books/:isbn', async (req, reply) => {
+  const isbn = String(req.params.isbn ?? '').trim();
+  if (!/^\d{10,13}$/.test(isbn)) return reply.code(400).send({ message: '올바른 ISBN이 필요합니다.' });
+
+  const item = await lookupBook(isbn, { useMock: USE_MOCK, ttbKey: process.env.ALADIN_TTB_KEY });
+  if (!item) return reply.code(404).send({ message: '책 정보를 찾지 못했습니다.' });
+  return { item };
 });
 
 // --- 완독 시간 예측 ---

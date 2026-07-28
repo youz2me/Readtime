@@ -244,18 +244,34 @@ export default function Home() {
       setSearchMessage("이 유형은 텍스트 밀도를 추정하기 어려워 아직 지원하지 않아요.");
       return;
     }
-    setSelected(book);
+    let resolvedBook = book;
+    if (!book.pages && book.isbn) {
+      try {
+        const response = await fetch(`${API_BASE}/api/books/${encodeURIComponent(book.isbn)}`);
+        if (response.ok) {
+          const data = await response.json();
+          resolvedBook = { ...book, ...data.item };
+        }
+      } catch {
+        // 아래의 페이지 수 안내로 처리합니다.
+      }
+    }
+    if (!resolvedBook.pages) {
+      setSearchMessage("이 책은 페이지 정보를 확인할 수 없어 아직 시간을 계산하기 어려워요.");
+      return;
+    }
+    setSelected(resolvedBook);
     const localEstimate = () => {
-      const charsPerPage = { novel: 600, essay: 500, humanities: 700, selfhelp: 680 }[book.category] ?? 620;
-      const coefficient = book.category === genre ? 0.9 : 1.15;
-      const minutes = Math.max(1, Math.round((book.pages * charsPerPage * coefficient) / cpm));
+      const charsPerPage = { novel: 600, essay: 500, humanities: 700, selfhelp: 680 }[resolvedBook.category] ?? 620;
+      const coefficient = resolvedBook.category === genre ? 0.9 : 1.15;
+      const minutes = Math.max(1, Math.round((resolvedBook.pages * charsPerPage * coefficient) / cpm));
       return { minutes, range: { low: Math.round(minutes * 0.78), high: Math.round(minutes * 1.22) } };
     };
     try {
       const response = await fetch(`${API_BASE}/api/predict`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ pages: book.pages, category: book.category, cpm, favorites: [genre] }),
+        body: JSON.stringify({ pages: resolvedBook.pages, category: resolvedBook.category, cpm, favorites: [genre] }),
       });
       if (!response.ok) throw new Error();
       const data = await response.json();
