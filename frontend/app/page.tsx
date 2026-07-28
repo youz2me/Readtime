@@ -87,6 +87,13 @@ function formatMinutes(minutes: number) {
   return hours ? `${hours}시간 ${rest ? `${rest}분` : ""}` : `${rest}분`;
 }
 
+function getReadingSpeedGuide(cpm: number) {
+  if (cpm < 350) return "천천히 읽는 편";
+  if (cpm < 650) return "보통 속도";
+  if (cpm < 900) return "빠른 편";
+  return "매우 빠른 편";
+}
+
 export default function Home() {
   const [step, setStep] = useState<Step>("calibrate");
   const [genre, setGenre] = useState<Genre>("novel");
@@ -106,6 +113,8 @@ export default function Home() {
   const passage = PASSAGES[genre];
   const charCount = passage.text.replace(/\s/g, "").length;
   const genreName = GENRES.find((item) => item.id === genre)?.label ?? "책";
+  const speedGuide = getReadingSpeedGuide(cpm);
+  const speedRatio = (cpm / 500).toFixed(1);
 
   const recommendations = useMemo(() => {
     if (!selected) return [];
@@ -288,7 +297,12 @@ export default function Home() {
               <div className="complete-view">
                 <p>측정 완료</p>
                 <h2>1분에 약 <strong>{cpm}자</strong>를 읽어요.</h2>
-                <span>{Math.round(elapsed ?? 0)}초 동안 {charCount}자를 읽은 결과예요. 이 읽기 속도로 책의 완독 시간을 계산할게요.</span>
+                <div className="speed-guide">
+                  <strong>짧은 예시 글 기준 · {speedGuide}</strong>
+                  <span>Readtime 기본 속도인 1분 500자보다 약 {speedRatio}배 빨라요.</span>
+                  <small>글의 길이와 난이도, 익숙한 정도에 따라 달라질 수 있어요.</small>
+                </div>
+                <span>{Math.round(elapsed ?? 0)}초 동안 {charCount}자를 읽은 결과예요. 이 속도로 책의 완독 시간을 계산할게요.</span>
                 <div className="action-pair">
                   <button className="primary" onClick={() => go("search")}>책 검색하기</button>
                   <button className="secondary" onClick={() => resetTest()}>다시 측정</button>
@@ -338,11 +352,14 @@ export default function Home() {
               <p className="result-copy">지금 속도로 읽으면</p>
               <div className="result-time">{formatMinutes(prediction.minutes)}</div>
               <span>예상 범위 {formatMinutes(prediction.range.low)} – {formatMinutes(prediction.range.high)}</span>
-              <div className="result-facts">
-                <div><strong>약 {cpm}자</strong><span>1분에 읽는 양</span></div>
-                <div><strong>{genreName}</strong><span>선호 장르</span></div>
-                <div><strong>±22%</strong><span>예상 오차</span></div>
-              </div>
+                <div className="result-facts">
+                  <div><strong>약 {cpm}자</strong><span>1분에 읽는 양</span></div>
+                  <div><strong>{genreName}</strong><span>선호 장르</span></div>
+                  <div><strong>약 ±{formatMinutes(Math.max(
+                    prediction.minutes - prediction.range.low,
+                    prediction.range.high - prediction.minutes,
+                  ))}</strong><span>예상 오차</span></div>
+                </div>
             </div>
           </div>
 
