@@ -494,7 +494,7 @@ export default function Home() {
       </header>
 
       {step === "calibrate" && (
-        <section className="screen calibration-screen">
+        <section className={`screen calibration-screen phase-${phase}`}>
           <div className="screen-heading">
             <p>먼저 읽기 속도를 재요</p>
             <h1>평소 읽는 장르로<br />속도를 측정해보세요.</h1>
