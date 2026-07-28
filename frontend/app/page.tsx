@@ -441,7 +441,7 @@ export default function Home() {
                   </span>
                   <strong>{book.title}</strong>
                   <small>{book.author}</small>
-                  <span>{book.pages}쪽 · 예상 시간 보기</span>
+                  <span>{book.pages ? `${book.pages}쪽` : "페이지 선택 시 확인"} · 예상 시간 보기</span>
                 </button>
               ))}
             </div>
