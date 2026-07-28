@@ -463,7 +463,9 @@ export default function Home() {
             <div className="recommend-grid">
               {recommendations.map((book) => (
                 <button key={book.title} onClick={() => chooseBook(book)}>
-                  <span className="mini-cover">{book.title.slice(0, 1)}</span>
+                  <span className="mini-cover">
+                    {book.cover ? <img src={book.cover} alt={`${book.title} 표지`} /> : book.title.slice(0, 1)}
+                  </span>
                   <strong>{book.title}</strong>
                   <small>{book.author} · {book.pages}쪽</small>
                 </button>
