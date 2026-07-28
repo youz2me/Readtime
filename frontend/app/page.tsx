@@ -633,25 +633,29 @@ export default function Home() {
             <div className="result-book-cover">
               {selected.cover ? <img src={selected.cover} alt={`${selected.title} 표지`} /> : selected.title.slice(0, 1)}
             </div>
-            <div>
-              <p>
-                {selected.author}
-                {selected.publisher && ` · ${selected.publisher}`}
-                {` · ${selected.pages}쪽`}
-              </p>
-              <h1>{selected.title}</h1>
-              {selected.description && <p className="book-description">{selected.description}</p>}
-              <p className="result-copy">이 책을 내 속도로 읽으면</p>
-              <div className="result-time">{formatMinutes(prediction.minutes)}</div>
-              <span>실제로는 {formatMinutes(prediction.range.low)}~{formatMinutes(prediction.range.high)} 정도 걸릴 수 있어요.</span>
+            <div className="result-details">
+              <div className="result-book-heading">
+                <p className="book-meta">
+                  <span>{selected.author}</span>
+                  {selected.publisher && <span className="book-publisher">{selected.publisher}</span>}
+                  <span>{selected.pages}쪽</span>
+                </p>
+                <h1>{selected.title}</h1>
+                {selected.description && <p className="book-description">{selected.description}</p>}
+              </div>
+              <div className="result-estimate">
+                <p className="result-copy">내 속도로 읽으면</p>
+                <div className="result-time">{formatMinutes(prediction.minutes)}</div>
+                <span className="result-range">보통 {formatMinutes(prediction.range.low)}~{formatMinutes(prediction.range.high)} 걸려요.</span>
                 <div className="result-facts">
-                <div><strong>약 {wpm}단어</strong><span>1분에 읽는 양</span></div>
+                  <div><strong>약 {wpm}단어</strong><span>1분에 읽는 양</span></div>
                   <div><strong>{genreName}</strong><span>속도를 잰 장르</span></div>
                   <div><strong>약 ±{formatMinutes(Math.max(
                     prediction.minutes - prediction.range.low,
                     prediction.range.high - prediction.minutes,
                   ))}</strong><span>예상 오차</span></div>
                 </div>
+              </div>
             </div>
           </div>
 
