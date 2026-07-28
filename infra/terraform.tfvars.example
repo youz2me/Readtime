@@ -1,6 +1,6 @@
 aws_region     = "ap-northeast-2"
 project_name   = "readtime"
-environment    = "as-is"
+environment    = "prod"
 
 api_domain     = "api.youjinlee.com"
 frontend_origin = "https://readtime.youjinlee.com"
