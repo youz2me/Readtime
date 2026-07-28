@@ -1,52 +1,56 @@
-# readtime — 책 완독 시간 예측 서비스
+# Readtime
 
-인프라 포트폴리오. **"고정 서버 vs 오토스케일링"**을 실제로 측정·비교하는 게 목표다.
-서비스(책 완독 시간 예측)는 조연, 인프라가 주연.
+개인의 읽기 속도와 책 정보를 바탕으로 예상 완독 시간을 계산하는 서비스입니다.
+짧은 장르별 글로 읽기 속도를 측정하고, 알라딘 OpenAPI에서 가져온 도서의
+페이지 수와 카테고리를 함께 반영해 예상 시간과 범위를 보여줍니다.
 
-## 모노레포 구조
+## 서비스 기능
 
-```
-readtime/
-├── backend/    Node(Fastify) API + /metrics  ← 부하 대상, 판1 주연
-├── frontend/   정적 프론트 → Vercel + 도메인 (AWS 밖)
-└── infra/      Terraform (AWS VPC, EC2×2, NAT, SSM)  ← 판2에서 채움
-```
+- 장르별 예시 글을 활용한 개인 읽기 속도 측정
+- 알라딘 OpenAPI 기반 도서 검색, 베스트셀러 및 상세 정보 조회
+- 페이지 수, 도서 카테고리, 읽기 속도를 반영한 완독 시간 예측
+- 선택한 책과 비슷한 도서 추천
+- 페이지 정보가 없거나 그림 비중이 높은 도서의 측정 제한 안내
 
-배포는 셋으로 갈리지만(프론트=Vercel, 백=EC2, 인프라=Terraform), 저장소는 하나다.
-"as-is → to-be" 진화가 커밋 로그로 남는 게 이 프로젝트의 기록 방식.
+## 인프라 설계
 
-## 로드맵
+```mermaid
+flowchart LR
+    User[사용자] --> Frontend[Vercel<br/>readtime.youjinlee.com]
+    Frontend --> Caddy[Caddy HTTPS<br/>api.youjinlee.com]
 
-- **판 1 (as-is)**: 고정 EC2 1대에 백엔드를 올리고 부하를 걸어 **언제 무너지는지** 측정.
-- **판 2 (to-be)**: EKS 오토스케일링 + 로드밸런서 + `api.도메인`.
+    subgraph AWS
+        subgraph PublicSubnet[Public Subnet]
+            Caddy --> API[Fastify API<br/>Docker · EC2]
+        end
 
-아키텍처 문서: 인프라 설계 아티팩트 참고.
+        subgraph PrivateSubnet[Private Subnet]
+            Prometheus[Prometheus] -->|/metrics| API
+            Grafana[Grafana] --> Prometheus
+        end
 
-## 지금 할 일 (로컬 리허설)
-
-```bash
-cd backend
-npm install
-npm run dev          # http://localhost:8080
-```
-
-알라딘 OpenAPI를 연결하려면 키를 로컬 환경파일에 넣는다.
-
-```bash
-cp backend/.env.example backend/.env
-# backend/.env의 ALADIN_TTB_KEY에 발급받은 TTB Key 입력
+        SSM[SSM Session Manager] --> Grafana
+        Parameter[SSM Parameter Store<br/>Aladin API Key] --> API
+    end
 ```
 
-프론트엔드도 백엔드 주소용 환경파일을 준비한다.
+프론트엔드는 Vercel에서 제공하고, 백엔드는 AWS 퍼블릭 서브넷의 EC2에서 Docker
+컨테이너로 실행합니다. Caddy가 HTTPS 인증서와 리버스 프록시를 담당하며 서비스
+EC2에는 Elastic IP를 연결해 고정된 API 주소를 유지합니다.
 
-```bash
-cp frontend/.env.example frontend/.env.local
-cd frontend
-npm install
-npm run dev          # http://localhost:3000
-```
+Prometheus와 Grafana는 별도의 프라이빗 EC2에서 실행합니다. Prometheus는
+Fastify의 요청 수와 응답 시간, 프로세스 지표를 수집하고 Grafana는 SSM 포트
+포워딩을 통해서만 접근할 수 있습니다. 알라딘 API 키는 SSM Parameter Store의
+SecureString으로 관리합니다.
 
-세 가지 체크포인트:
-1. **CPU 부하 경로** — `GET /internal/load?ms=200` 이 이벤트 루프를 태운다(스케일 실험용).
-2. **/metrics** — `GET /metrics` 가 Prometheus 포맷 지표(프로세스 CPU/메모리/요청 지연)를 뱉는다.
-3. **도커라이즈** — `docker build -t readtime-backend ./backend && docker run -p 8080:8080 readtime-backend`
+AWS 네트워크, 보안 그룹, IAM, EC2 및 관측 환경은 Terraform으로 관리합니다.
+
+## 기술 구성
+
+| 영역 | 기술 |
+| --- | --- |
+| Frontend | Next.js, TypeScript, Vercel |
+| Backend | Node.js, Fastify, Docker |
+| Book data | Aladin OpenAPI |
+| Infrastructure | AWS VPC, EC2, Elastic IP, SSM, Terraform |
+| Observability | Prometheus, Grafana |
