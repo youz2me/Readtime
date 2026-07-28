@@ -287,8 +287,8 @@ export default function Home() {
             {phase === "complete" && (
               <div className="complete-view">
                 <p>측정 완료</p>
-                <h2>분당 <strong>{cpm}자</strong>를 읽어요.</h2>
-                <span>{Math.round(elapsed ?? 0)}초 동안 {charCount}자를 읽었어요. 이제 이 속도로 책의 완독 시간을 계산할게요.</span>
+                <h2>1분에 약 <strong>{cpm}자</strong>를 읽어요.</h2>
+                <span>{Math.round(elapsed ?? 0)}초 동안 {charCount}자를 읽은 결과예요. 이 읽기 속도로 책의 완독 시간을 계산할게요.</span>
                 <div className="action-pair">
                   <button className="primary" onClick={() => go("search")}>책 검색하기</button>
                   <button className="secondary" onClick={() => resetTest()}>다시 측정</button>
@@ -302,7 +302,7 @@ export default function Home() {
       {step === "search" && (
         <section className="screen search-screen">
           <div className="screen-heading centered">
-            <p>내 속도 {cpm} CPM · 선호 장르 {genreName}</p>
+            <p>나의 읽기 속도 1분에 약 {cpm}자 · 선호 장르 {genreName}</p>
             <h1>어떤 책을 읽을까요?</h1>
             <p className="lead">책을 선택하면 방금 측정한 속도로 완독 시간을 계산합니다.</p>
           </div>
@@ -339,7 +339,7 @@ export default function Home() {
               <div className="result-time">{formatMinutes(prediction.minutes)}</div>
               <span>예상 범위 {formatMinutes(prediction.range.low)} – {formatMinutes(prediction.range.high)}</span>
               <div className="result-facts">
-                <div><strong>{cpm}</strong><span>나의 CPM</span></div>
+                <div><strong>약 {cpm}자</strong><span>1분에 읽는 양</span></div>
                 <div><strong>{genreName}</strong><span>선호 장르</span></div>
                 <div><strong>±22%</strong><span>예상 오차</span></div>
               </div>
