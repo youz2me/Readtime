@@ -554,7 +554,7 @@ export default function Home() {
                 <h2>1분에 약 <strong>{wpm}단어</strong>를 읽는 편이에요.</h2>
                 <div className="speed-guide">
                   <strong>짧은 예시 글 기준 · {speedGuide}</strong>
-                  <span>한국어 성인이 조용히 읽는 평균 속도는 약 202단어예요.</span>
+                  <span>한국 사람의 평균 읽기 속도는 1분에 약 202단어예요.</span>
                   <small>책의 난이도와 익숙한 정도에 따라 실제 속도는 달라질 수 있어요.</small>
                 </div>
                 <span>{wordCount}단어를 {Math.round(elapsed ?? 0)}초 동안 읽은 결과예요.</span>
