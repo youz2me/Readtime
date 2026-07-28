@@ -497,7 +497,7 @@ export default function Home() {
         <section className="screen calibration-screen">
           <div className="screen-heading">
             <p>먼저 읽기 속도를 재요</p>
-            <h1>자주 읽는 장르를<br />하나 골라 주세요.</h1>
+            <h1>평소 읽는 장르로<br />속도를 측정해보세요.</h1>
             <p className="lead">짧은 글을 읽고 질문 하나에 답하면 끝나요. 약 2분 걸려요.</p>
           </div>
 
