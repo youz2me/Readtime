@@ -60,7 +60,9 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--blue); outl
 .primary:hover { background: #3457b1; }
 .secondary { color: var(--body); background: var(--white); }
 .secondary:hover { background: #e8e8e8; }
-.quiet-state .primary { margin-top: 34px; }
+.quiet-state .action-pair { margin-top: 34px; }
+.quiet-state .action-pair .primary { margin-top: 0; }
+.skip-note { margin-top: 12px; color: var(--muted); font-size: 12px; }
 
 .reading-view { width: 100%; padding: 38px clamp(24px, 8vw, 100px) 44px; background: var(--white); }
 .reading-meta { margin-bottom: 32px; display: flex; justify-content: space-between; color: var(--muted); font-size: 13px; }

@@ -26,6 +26,7 @@ type Prediction = {
 };
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080";
+const IS_LOCAL = API_BASE.includes("localhost") || API_BASE.includes("127.0.0.1");
 
 const GENRES: Array<{ id: Genre; label: string; caption: string }> = [
   { id: "novel", label: "소설", caption: "인물과 장면을 따라 읽는 글" },
@@ -289,13 +290,25 @@ export default function Home() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
+  function skipCalibration() {
+    setWpm(200);
+    setCpm(500);
+    go("search");
+  }
+
   return (
     <main>
       <header className="topbar">
         <button className="wordmark" type="button" onClick={() => go("calibrate")}>READTIME</button>
         <nav aria-label="진행 단계">
           <button className={step === "calibrate" ? "active" : ""} onClick={() => go("calibrate")}>속도 측정</button>
-          <button className={step === "search" ? "active" : ""} onClick={() => phase === "complete" && go("search")} disabled={phase !== "complete"}>책 검색</button>
+          <button
+            className={step === "search" ? "active" : ""}
+            onClick={() => (phase === "complete" || IS_LOCAL) && go("search")}
+            disabled={phase !== "complete" && !IS_LOCAL}
+          >
+            책 검색
+          </button>
           <button className={step === "result" ? "active" : ""} disabled={!prediction} onClick={() => prediction && go("result")}>예상 시간</button>
         </nav>
         <span className="step-count">{step === "calibrate" ? "1" : step === "search" ? "2" : "3"} / 3</span>
@@ -324,7 +337,15 @@ export default function Home() {
                 <p>{genreName} 예시 글 · 약 {wordCount}단어</p>
                 <h2>글을 읽고 질문에 답해보세요.</h2>
                 <span>시작 버튼을 누르면 글과 타이머가 함께 나타납니다.<br />끝까지 읽은 뒤 내용 확인 질문에 답해야 측정이 완료돼요.</span>
-                <button className="primary" onClick={startTest}>읽기 시작</button>
+                <div className="action-pair">
+                  <button className="primary" onClick={startTest}>읽기 시작</button>
+                  {IS_LOCAL && (
+                    <button className="secondary" onClick={skipCalibration}>
+                      측정 건너뛰기
+                    </button>
+                  )}
+                </div>
+                {IS_LOCAL && <small className="skip-note">평균 속도인 분당 200단어로 계산합니다.</small>}
               </div>
             )}
 
