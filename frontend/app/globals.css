@@ -158,7 +158,8 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--blue); outl
   .topbar nav { display: none; }
   .screen { width: min(100% - 32px, 1120px); min-height: calc(100svh - 56px); padding: 28px 0 32px; }
   .genre-options { grid-template-columns: 1fr 1fr; }
-  .book-grid, .bestseller-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .book-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .bestseller-list { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
   .result-hero { padding: 36px 24px 42px; grid-template-columns: minmax(130px, 30vw) 1fr; gap: 28px; }
   .result-book-cover { max-width: 230px; margin: 0 auto; }
   .result-facts { margin-top: 28px; gap: 16px; }
@@ -192,6 +193,9 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--blue); outl
   .book-search { grid-template-columns: 1fr; }
   .book-search .primary { width: 100%; }
   .book-grid { gap: 14px; }
+  .bestseller-list { gap: 10px; }
+  .bestseller-card strong { font-size: 13px; line-height: 1.35; }
+  .bestseller-card small, .bestseller-card > span:last-child { font-size: 10px; line-height: 1.4; }
   .search-results { margin-bottom: 64px; }
   .bestseller-section { padding-top: 38px; }
   .book-section-heading h2 { font-size: 25px; }
