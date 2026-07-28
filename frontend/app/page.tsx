@@ -25,8 +25,12 @@ type Prediction = {
   range: { low: number; high: number };
 };
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL
-  ?? (process.env.NODE_ENV === "development" ? "http://localhost:8080" : "");
+const API_BASE = (
+  process.env.NEXT_PUBLIC_API_BASE_URL
+  ?? (process.env.NODE_ENV === "development"
+    ? "http://localhost:8080"
+    : "https://api.youjinlee.com")
+).replace(/\/$/, "");
 const IS_LOCAL = API_BASE.includes("localhost") || API_BASE.includes("127.0.0.1");
 
 const GENRES: Array<{ id: Genre; label: string; caption: string }> = [
@@ -417,7 +421,7 @@ export default function Home() {
 
   async function chooseBook(book: Book) {
     if (!book.supported) {
-      showToast("만화·그림책처럼 텍스트 밀도를 추정하기 어려운 책은 아직 시간을 계산할 수 없어요.");
+      showToast("이 책은 완독 시간을 계산하기 어려워요. 그림책·만화처럼 그림 비중이 높거나 페이지 수 정보가 없는 책은 정확한 읽기 시간을 측정할 수 없습니다.");
       return;
     }
     let resolvedBook = book;
@@ -433,7 +437,7 @@ export default function Home() {
       }
     }
     if (!resolvedBook.pages) {
-      showToast("이 책은 페이지 정보를 확인할 수 없어 아직 시간을 계산하기 어려워요.");
+      showToast("이 책은 페이지 수 정보가 없어 완독 시간을 계산할 수 없어요. 그림책·만화·전자책처럼 페이지 정보가 제공되지 않는 책은 정확한 측정이 어려울 수 있습니다.");
       return;
     }
     setSelected(resolvedBook);
