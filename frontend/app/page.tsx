@@ -635,12 +635,12 @@ export default function Home() {
             </div>
             <div className="result-details">
               <div className="result-book-heading">
-                <p className="book-meta">
-                  <span>{selected.author}</span>
-                  {selected.publisher && <span className="book-publisher">{selected.publisher}</span>}
-                  <span>{selected.pages}쪽</span>
-                </p>
                 <h1>{selected.title}</h1>
+                <p className="book-meta">
+                  <span><small>지은이</small>{selected.author}</span>
+                  {selected.publisher && <span className="book-publisher"><small>출판사</small>{selected.publisher}</span>}
+                  <span><small>분량</small>{selected.pages}쪽</span>
+                </p>
                 {selected.description && <p className="book-description">{selected.description}</p>}
               </div>
               <div className="result-estimate">
