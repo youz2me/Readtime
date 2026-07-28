@@ -1,6 +1,7 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, MouseEvent, useEffect, useMemo, useState } from "react";
+import { ADDITIONAL_PASSAGES } from "./additional-passages";
 
 type Genre = "novel" | "essay" | "humanities" | "selfhelp";
 type Step = "calibrate" | "search" | "result";
@@ -93,7 +94,7 @@ const PASSAGES: Record<Genre, Passage[]> = {
     question: "도윤이 상영을 취소하지 않은 이유는 무엇인가요?",
     answers: ["관객이 가득 차서", "부부가 영화를 오래 기다렸다고 해서", "눈이 곧 그칠 예정이라서"],
     correct: 1,
-  }],
+  }, ...ADDITIONAL_PASSAGES.novel],
   essay: [{
     title: "기록하지 않는 산책",
     text: `아침에 같은 길을 걷더라도 매일 같은 풍경을 보는 것은 아니다. 어떤 날에는 빵집 앞에 놓인 빈 상자가 먼저 보이고, 어떤 날에는 신호를 기다리는 사람의 구두가 눈에 들어온다. 풍경이 달라진 것이 아니라 내가 들고 나온 마음이 달라진 것이다.
@@ -144,7 +145,7 @@ const PASSAGES: Record<Genre, Passage[]> = {
     question: "글쓴이가 조리법을 적어달라고 한 이유는 무엇인가요?",
     answers: ["식당을 열기 위해서", "기억을 다음 식탁으로 이어가고 싶어서", "재료 가격을 계산하려고"],
     correct: 1,
-  }],
+  }, ...ADDITIONAL_PASSAGES.essay],
   humanities: [{
     title: "좋은 지도의 조건",
     text: `지도는 현실을 작게 옮겨놓은 그림처럼 보이지만, 실제로는 무엇을 남기고 무엇을 지울지 결정한 결과다. 모든 골목과 나무, 사람의 움직임을 한 장에 담을 수 없기 때문이다. 지도를 만드는 사람은 사용 목적에 따라 중요한 정보를 선택하고 나머지를 생략한다.
@@ -195,7 +196,7 @@ const PASSAGES: Record<Genre, Passage[]> = {
     question: "평균만으로 알기 어려운 것은 무엇인가요?",
     answers: ["집단의 대략적인 경향", "구성원 사이 값의 차이", "자료의 단위"],
     correct: 1,
-  }],
+  }, ...ADDITIONAL_PASSAGES.humanities],
   selfhelp: [{
     title: "작게 시작하는 습관",
     text: `새로운 습관을 만들 때 가장 흔한 실수는 의욕이 가장 높은 날을 기준으로 계획하는 것이다. 첫날에는 한 시간 운동할 수 있지만 피곤한 수요일 저녁에도 같은 계획을 지키기는 어렵다. 좋은 계획은 최고의 나보다 평범한 나를 기준으로 설계되어야 한다.
@@ -246,7 +247,7 @@ const PASSAGES: Record<Genre, Passage[]> = {
     question: "휴식을 미리 달력에 넣으라고 한 이유는 무엇인가요?",
     answers: ["휴식 시간을 쉽게 미루지 않기 위해서", "업무 시간을 더 길게 만들기 위해서", "달력을 가득 채우기 위해서"],
     correct: 0,
-  }],
+  }, ...ADDITIONAL_PASSAGES.selfhelp],
 };
 
 const SAMPLE_BOOKS: Book[] = [
@@ -290,14 +291,13 @@ export default function Home() {
   const [elapsed, setElapsed] = useState<number | null>(null);
   const [cpm, setCpm] = useState(500);
   const [wpm, setWpm] = useState(200);
-  const [toast, setToast] = useState<{ id: number; message: string } | null>(null);
+  const [toast, setToast] = useState<{ title: string; message: string } | null>(null);
   const [query, setQuery] = useState("");
   const [books, setBooks] = useState<Book[]>([]);
   const [searching, setSearching] = useState(false);
-  const [demoMode, setDemoMode] = useState(false);
   const [selected, setSelected] = useState<Book | null>(null);
   const [prediction, setPrediction] = useState<Prediction | null>(null);
-  const [searchMessage, setSearchMessage] = useState("읽고 싶은 책의 제목을 검색하세요.");
+  const [searchMessage, setSearchMessage] = useState("제목이나 저자를 입력해 주세요.");
   const [bestsellers, setBestsellers] = useState<Book[]>(BESTSELLERS);
   const [bestsellerDemoMode, setBestsellerDemoMode] = useState(false);
 
@@ -356,26 +356,26 @@ export default function Home() {
     setElapsed(null);
   }
 
-  function showToast(message: string) {
-    const id = Date.now();
-    setToast({ id, message });
+  function showToast(title: string, message: string) {
+    const nextToast = { title, message };
+    setToast(nextToast);
     window.setTimeout(() => {
-      setToast((current) => current?.id === id ? null : current);
+      setToast((current) => current === nextToast ? null : current);
     }, 3600);
   }
 
-  function startTest(random = false) {
+  function startTest(random: boolean, timestamp: number) {
     if (random) setPassageIndex(Math.floor(Math.random() * genrePassages.length));
     setPhase("reading");
-    setStartedAt(Date.now());
+    setStartedAt(timestamp);
   }
 
-  function finishTest() {
+  function finishTest(event: MouseEvent<HTMLButtonElement>) {
     if (!startedAt) return;
-    const seconds = Math.max(1, (Date.now() - startedAt) / 1000);
+    const seconds = Math.max(1, (event.timeStamp - startedAt) / 1000);
     if (seconds < 8) {
       resetTest();
-      showToast("측정 시간이 너무 짧아 결과를 저장하지 않았어요. 글을 처음부터 다시 읽어주세요.");
+      showToast("속도를 재지 못했어요", "8초 이상 읽어야 정확히 잴 수 있어요. 천천히 다시 읽어 주세요.");
       return;
     }
     setElapsed(seconds);
@@ -385,7 +385,7 @@ export default function Home() {
   function answer(index: number) {
     if (index !== passage.correct || !elapsed) {
       resetTest();
-      showToast("내용 확인에 실패해 이번 측정은 제외했어요. 다시 측정해주세요.");
+      showToast("이번 기록은 제외했어요", "답이 맞지 않아 속도가 정확하지 않을 수 있어요. 다른 글로 다시 재볼게요.");
       return;
     }
     const measuredCpm = Math.round(charCount / (elapsed / 60));
@@ -397,7 +397,10 @@ export default function Home() {
 
   async function searchBooks(event: FormEvent) {
     event.preventDefault();
-    if (!query.trim()) return;
+    if (!query.trim()) {
+      setSearchMessage("찾을 책의 제목이나 저자를 입력해 주세요.");
+      return;
+    }
     setSearching(true);
     setSearchMessage("책을 찾고 있어요.");
     try {
@@ -405,15 +408,13 @@ export default function Home() {
       if (!response.ok) throw new Error();
       const data = await response.json();
       setBooks(data.items);
-      setDemoMode(false);
-      setSearchMessage(`${data.count}권을 찾았어요.`);
+      setSearchMessage(data.count ? `${data.count}권을 찾았어요. 책을 고르면 완독 시간을 보여드려요.` : "검색 결과가 없어요. 제목이나 저자를 다시 확인해 주세요.");
     } catch {
       const hits = SAMPLE_BOOKS.filter((book) =>
         `${book.title} ${book.author}`.toLowerCase().includes(query.trim().toLowerCase()),
       );
       setBooks(hits.length ? hits : SAMPLE_BOOKS);
-      setDemoMode(true);
-      setSearchMessage("현재는 샘플 도서로 결과를 보여드려요.");
+      setSearchMessage("검색 서비스에 연결하지 못해 예시 책을 보여드려요.");
     } finally {
       setSearching(false);
     }
@@ -421,7 +422,7 @@ export default function Home() {
 
   async function chooseBook(book: Book) {
     if (!book.supported) {
-      showToast("이 책은 완독 시간을 계산하기 어려워요. 그림책·만화처럼 그림 비중이 높거나 페이지 수 정보가 없는 책은 정확한 읽기 시간을 측정할 수 없습니다.");
+      showToast("이 책은 시간을 계산하기 어려워요", "그림이 많거나 페이지 수가 일정하지 않은 책은 결과가 부정확할 수 있어요.");
       return;
     }
     let resolvedBook = book;
@@ -437,7 +438,7 @@ export default function Home() {
       }
     }
     if (!resolvedBook.pages) {
-      showToast("이 책은 페이지 수 정보가 없어 완독 시간을 계산할 수 없어요. 그림책·만화·전자책처럼 페이지 정보가 제공되지 않는 책은 정확한 측정이 어려울 수 있습니다.");
+      showToast("페이지 수를 찾지 못했어요", "다른 판본을 검색하거나 페이지 수가 표시된 책을 골라 주세요.");
       return;
     }
     setSelected(resolvedBook);
@@ -458,7 +459,6 @@ export default function Home() {
       setPrediction({ minutes: data.minutes, range: data.range });
     } catch {
       setPrediction(localEstimate());
-      setDemoMode(true);
     }
     setStep("result");
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -480,15 +480,15 @@ export default function Home() {
       <header className="topbar">
         <button className="wordmark" type="button" onClick={() => go("calibrate")}>READTIME</button>
         <nav aria-label="진행 단계">
-          <button className={step === "calibrate" ? "active" : ""} onClick={() => go("calibrate")}>속도 측정</button>
+          <button className={step === "calibrate" ? "active" : ""} onClick={() => go("calibrate")}>1. 속도 재기</button>
           <button
             className={step === "search" ? "active" : ""}
             onClick={() => (phase === "complete" || IS_LOCAL) && go("search")}
             disabled={phase !== "complete" && !IS_LOCAL}
           >
-            책 검색
+            2. 책 고르기
           </button>
-          <button className={step === "result" ? "active" : ""} disabled={!prediction} onClick={() => prediction && go("result")}>예상 시간</button>
+          <button className={step === "result" ? "active" : ""} disabled={!prediction} onClick={() => prediction && go("result")}>3. 시간 보기</button>
         </nav>
         <span className="step-count">{step === "calibrate" ? "1" : step === "search" ? "2" : "3"} / 3</span>
       </header>
@@ -496,14 +496,14 @@ export default function Home() {
       {step === "calibrate" && (
         <section className="screen calibration-screen">
           <div className="screen-heading">
-            <p>나에게 맞는 기준부터</p>
-            <h1>평소 읽는 장르로<br />속도를 측정해보세요.</h1>
-            <p className="lead">장르마다 읽는 방식이 다르니까, 하나의 예시 글로 모두를 재지 않습니다.</p>
+            <p>먼저 읽기 속도를 재요</p>
+            <h1>자주 읽는 장르를<br />하나 골라 주세요.</h1>
+            <p className="lead">짧은 글을 읽고 질문 하나에 답하면 끝나요. 약 2분 걸려요.</p>
           </div>
 
           <div className="genre-options">
             {GENRES.map((item) => (
-              <button key={item.id} className={genre === item.id ? "selected" : ""} onClick={() => resetTest(item.id)}>
+              <button key={item.id} className={genre === item.id ? "selected" : ""} aria-pressed={genre === item.id} onClick={() => resetTest(item.id)}>
                 <strong>{item.label}</strong>
                 <span>{item.caption}</span>
               </button>
@@ -513,11 +513,11 @@ export default function Home() {
           <div className="test-stage">
             {phase === "ready" && (
               <div className="quiet-state">
-                <p>{genreName} 예시 글 · 약 {wordCount}단어</p>
-                <h2>글을 읽고 질문에 답해보세요.</h2>
-                <span>선택한 장르에서 매번 랜덤한 글이 제공됩니다.<br />끝까지 읽은 뒤 내용 확인 질문에 답해야 측정이 완료돼요.</span>
+                <p>{genreName} 글 · 약 {wordCount}단어</p>
+                <h2>준비되면 글을 읽어 주세요.</h2>
+                <span>읽기를 누르면 바로 측정해요.<br />다 읽은 뒤 질문 하나에 답하면 속도를 알려드려요.</span>
                 <div className="action-pair">
-                  <button className="primary" onClick={() => startTest(true)}>읽기 시작</button>
+                  <button className="primary" onClick={(event) => startTest(true, event.timeStamp)}>예시 글 읽기</button>
                   {IS_LOCAL && (
                     <button className="secondary" onClick={skipCalibration}>
                       측정 건너뛰기
@@ -530,15 +530,15 @@ export default function Home() {
 
             {phase === "reading" && (
               <div className="reading-view">
-                <div className="reading-meta"><span>{genreName} · {passage.title} · 읽은 뒤 질문 1개</span><span>측정 중</span></div>
+                <div className="reading-meta"><span>{genreName} · {passage.title}</span><span>읽는 시간 재는 중</span></div>
                 <article>{passage.text}</article>
-                <button className="primary wide" onClick={finishTest}>다 읽었어요</button>
+                <button className="primary wide" onClick={finishTest}>다 읽고 질문에 답하기</button>
               </div>
             )}
 
             {phase === "question" && (
               <div className="question-view">
-                <p>내용 확인</p>
+                <p>마지막 질문이에요</p>
                 <h2>{passage.question}</h2>
                 <div>
                   {passage.answers.map((item, index) => (
@@ -550,17 +550,17 @@ export default function Home() {
 
             {phase === "complete" && (
               <div className="complete-view">
-                <p>측정 완료</p>
-                <h2>1분에 약 <strong>{wpm}단어</strong>를 읽어요.</h2>
+                <p>속도를 다 쟀어요</p>
+                <h2>1분에 약 <strong>{wpm}단어</strong>를 읽는 편이에요.</h2>
                 <div className="speed-guide">
                   <strong>짧은 예시 글 기준 · {speedGuide}</strong>
-                  <span>한국어 성인 묵독 연구의 평균은 약 202단어/분이에요.</span>
-                  <small>글의 길이와 난이도, 익숙한 정도에 따라 달라질 수 있어요.</small>
+                  <span>한국어 성인이 조용히 읽는 평균 속도는 약 202단어예요.</span>
+                  <small>책의 난이도와 익숙한 정도에 따라 실제 속도는 달라질 수 있어요.</small>
                 </div>
-                <span>{Math.round(elapsed ?? 0)}초 동안 {wordCount}단어를 읽은 결과예요. 한국어는 띄어쓰기 단위로 세었어요.</span>
+                <span>{wordCount}단어를 {Math.round(elapsed ?? 0)}초 동안 읽은 결과예요.</span>
                 <div className="action-pair">
-                  <button className="primary" onClick={() => go("search")}>책 검색하기</button>
-                  <button className="secondary" onClick={() => resetTest()}>다시 측정</button>
+                  <button className="primary" onClick={() => go("search")}>완독 시간 볼 책 고르기</button>
+                  <button className="secondary" onClick={() => resetTest()}>다른 글로 다시 재기</button>
                 </div>
               </div>
             )}
@@ -571,32 +571,32 @@ export default function Home() {
       {step === "search" && (
         <section className="screen search-screen">
           <div className="screen-heading centered">
-            <p>나의 읽기 속도 1분에 약 {wpm}단어 · 선호 장르 {genreName}</p>
-            <h1>어떤 책을 읽을까요?</h1>
-            <p className="lead">책을 선택하면 방금 측정한 속도로 완독 시간을 계산합니다.</p>
+            <p>내 속도 · 1분에 약 {wpm}단어</p>
+            <h1>읽을 책을 골라 주세요.</h1>
+            <p className="lead">책을 고르면 내 속도에 맞춘 예상 완독 시간을 바로 보여드려요.</p>
           </div>
 
           <form className="book-search" onSubmit={searchBooks}>
-            <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="책 제목을 입력하세요" aria-label="책 제목" />
-            <button className="primary" disabled={searching}>{searching ? "검색 중" : "검색"}</button>
+            <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="제목이나 저자 검색" aria-label="책 제목이나 저자" />
+            <button className="primary" disabled={searching}>{searching ? "찾는 중…" : "책 찾기"}</button>
           </form>
-          <p className="search-message">{searchMessage}{demoMode && " · sample mode"}</p>
+          <p className="search-message" role="status" aria-live="polite">{searchMessage}</p>
 
           {books.length > 0 && (
             <div className="search-results">
               <div className="book-section-heading">
                 <p>검색 결과</p>
-                <h2>찾으신 책이에요</h2>
+                <h2>{books.length}권을 찾았어요</h2>
               </div>
               <div className="book-grid">
                 {books.map((book) => (
-                  <button key={book.title} className="book-card" onClick={() => chooseBook(book)}>
+                  <button key={book.title} className="book-card" aria-label={`${book.title}, ${book.author}${book.supported ? " 완독 시간 보기" : " 시간 계산할 수 없음"}`} onClick={() => chooseBook(book)}>
                     <span className="book-cover">
                       {book.cover ? <img src={book.cover} alt="" /> : book.title.slice(0, 1)}
                     </span>
                     <strong>{book.title}</strong>
                     <small>{book.author}</small>
-                    <span>{book.pages || "?"}쪽 · {book.supported ? "시간 예측" : "예측 미지원"}</span>
+                    <span>{book.pages ? `${book.pages}쪽` : "페이지 수 없음"} · {book.supported ? "완독 시간 보기" : "시간 계산 어려움"}</span>
                   </button>
                 ))}
               </div>
@@ -605,9 +605,9 @@ export default function Home() {
 
           <div className="bestseller-section">
             <div className="book-section-heading">
-              <p>지금 많이 읽는 책</p>
-              <h2>알라딘 베스트셀러</h2>
-              <span>먼저 둘러보고, 마음에 드는 책을 바로 골라보세요.</span>
+              <p>많이 찾는 책</p>
+              <h2>바로 골라도 좋아요</h2>
+              <span>책을 누르면 예상 완독 시간을 보여드려요.</span>
             </div>
             <div className="bestseller-list">
               {bestsellers.map((book, index) => (
@@ -622,7 +622,7 @@ export default function Home() {
                 </button>
               ))}
             </div>
-            {bestsellerDemoMode && <p className="data-note">백엔드 연결 전이라 예시 목록을 보여드리고 있어요.</p>}
+            {bestsellerDemoMode && <p className="data-note">베스트셀러 정보를 불러오지 못해 예시 책을 보여드려요.</p>}
           </div>
         </section>
       )}
@@ -641,12 +641,12 @@ export default function Home() {
               </p>
               <h1>{selected.title}</h1>
               {selected.description && <p className="book-description">{selected.description}</p>}
-              <p className="result-copy">지금 속도로 읽으면</p>
+              <p className="result-copy">이 책을 내 속도로 읽으면</p>
               <div className="result-time">{formatMinutes(prediction.minutes)}</div>
-              <span>예상 범위 {formatMinutes(prediction.range.low)} – {formatMinutes(prediction.range.high)}</span>
+              <span>실제로는 {formatMinutes(prediction.range.low)}~{formatMinutes(prediction.range.high)} 정도 걸릴 수 있어요.</span>
                 <div className="result-facts">
                 <div><strong>약 {wpm}단어</strong><span>1분에 읽는 양</span></div>
-                  <div><strong>{genreName}</strong><span>선호 장르</span></div>
+                  <div><strong>{genreName}</strong><span>속도를 잰 장르</span></div>
                   <div><strong>약 ±{formatMinutes(Math.max(
                     prediction.minutes - prediction.range.low,
                     prediction.range.high - prediction.minutes,
@@ -657,8 +657,8 @@ export default function Home() {
 
           <div className="recommend-section">
             <div>
-              <p>다음 책도 골라보세요</p>
-              <h2>비슷한 결의 추천</h2>
+              <p>비슷한 책</p>
+              <h2>다른 책의 시간도 볼까요?</h2>
             </div>
             <div className="recommend-grid">
               {recommendations.map((book) => (
@@ -674,8 +674,8 @@ export default function Home() {
           </div>
 
           <div className="result-actions">
-            <button className="primary" onClick={() => go("search")}>다른 책 검색</button>
-            <button className="secondary" onClick={() => go("calibrate")}>속도 다시 측정</button>
+            <button className="primary" onClick={() => go("search")}>다른 책 고르기</button>
+            <button className="secondary" onClick={() => go("calibrate")}>읽기 속도 다시 재기</button>
           </div>
         </section>
       )}
@@ -683,7 +683,7 @@ export default function Home() {
       {toast && (
         <div className="toast" role="alert" aria-live="assertive">
           <span aria-hidden="true">!</span>
-          <p>{toast.message}</p>
+          <div><strong>{toast.title}</strong><p>{toast.message}</p></div>
           <button type="button" aria-label="알림 닫기" onClick={() => setToast(null)}>×</button>
         </div>
       )}
