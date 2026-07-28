@@ -87,7 +87,12 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--blue); outl
 .book-search { max-width: 720px; margin: 0 auto; display: grid; grid-template-columns: 1fr 150px; gap: 10px; }
 .book-search input { min-height: 50px; padding: 0 18px; border: 1px solid var(--line); border-radius: 4px; color: var(--ink); background: var(--white); font-size: 14px; }
 .book-search .primary { min-width: 0; min-height: 50px; }
-.search-message { margin: 14px 0 46px; color: var(--muted); font-size: 12px; text-align: center; }
+.search-message { margin: 14px 0 54px; color: var(--muted); font-size: 12px; text-align: center; }
+.search-results { margin-bottom: 88px; }
+.book-section-heading { margin-bottom: 28px; }
+.book-section-heading p { margin: 0 0 8px; color: var(--muted); font-size: 13px; }
+.book-section-heading h2 { margin: 0; font-size: 28px; font-weight: 500; }
+.book-section-heading > span { display: block; margin-top: 10px; color: var(--body); font-size: 14px; }
 .book-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 22px; }
 .book-card { padding: 0; display: grid; gap: 7px; border: 0; background: transparent; color: var(--ink); text-align: left; }
 .book-cover, .result-book-cover, .mini-cover { aspect-ratio: 3 / 4; display: grid; place-items: center; border-radius: 8px; color: var(--white); background: var(--ink); font-family: Georgia, serif; font-size: 48px; }
@@ -96,6 +101,16 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--blue); outl
 .book-card:nth-child(4n + 4) .book-cover { background: #53627c; }
 .book-card strong { margin-top: 6px; font-size: 15px; font-weight: 500; }
 .book-card small, .book-card > span:last-child { color: var(--muted); font-size: 12px; }
+.bestseller-section { padding: 48px 0 16px; border-top: 1px solid #eeeeee; }
+.bestseller-list { display: grid; grid-template-columns: repeat(6, minmax(150px, 1fr)); gap: 18px; }
+.bestseller-card { position: relative; min-width: 0; }
+.bestseller-card .rank { position: absolute; top: 12px; left: 12px; z-index: 1; width: 32px; height: 32px; display: grid; place-items: center; border-radius: 50%; color: var(--ink); background: rgb(255 255 255 / 88%); backdrop-filter: blur(8px); font-size: 11px; font-weight: 500; }
+.bestseller-card:nth-child(6n + 2) .book-cover { background: #5c6f67; }
+.bestseller-card:nth-child(6n + 3) .book-cover { background: #806e62; }
+.bestseller-card:nth-child(6n + 4) .book-cover { background: #53627c; }
+.bestseller-card:nth-child(6n + 5) .book-cover { background: #705c67; }
+.bestseller-card:nth-child(6n + 6) .book-cover { background: #586b73; }
+.data-note { margin: 24px 0 0; color: var(--muted); font-size: 11px; }
 
 .result-screen { min-height: calc(100vh - 64px); }
 .result-hero { min-height: 690px; padding: 74px max(40px, calc((100vw - 1100px) / 2)); display: grid; grid-template-columns: minmax(260px, 380px) 1fr; gap: clamp(60px, 10vw, 140px); align-items: center; background: var(--ash); }
@@ -124,6 +139,8 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--blue); outl
   .screen { width: min(100% - 32px, 1120px); padding-top: 48px; }
   .genre-options { grid-template-columns: 1fr 1fr; }
   .book-grid { grid-template-columns: 1fr 1fr; }
+  .bestseller-list { margin-right: -16px; padding-right: 16px; grid-template-columns: repeat(6, minmax(158px, 42vw)); overflow-x: auto; overscroll-behavior-inline: contain; scrollbar-width: none; }
+  .bestseller-list::-webkit-scrollbar { display: none; }
   .result-hero { padding: 54px 24px 64px; grid-template-columns: 1fr; gap: 40px; }
   .result-book-cover { max-width: 280px; margin: 0 auto; }
   .recommend-grid { grid-template-columns: 1fr; }
@@ -142,6 +159,9 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--blue); outl
   .book-search { grid-template-columns: 1fr; }
   .book-search .primary { width: 100%; }
   .book-grid { grid-template-columns: 1fr 1fr; gap: 14px; }
+  .search-results { margin-bottom: 64px; }
+  .bestseller-section { padding-top: 38px; }
+  .book-section-heading h2 { font-size: 25px; }
   .result-facts { grid-template-columns: 1fr; gap: 18px; }
   .result-hero h1 { font-size: 34px; }
   .toast { right: 16px; bottom: 16px; }

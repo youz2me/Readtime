@@ -81,6 +81,16 @@ const SAMPLE_BOOKS: Book[] = [
   { title: "슬램덩크 1", author: "이노우에 다케히코", pages: 190, category: "comic", supported: false },
 ];
 
+// 알라딘 ItemList API를 연결하면 이 배열만 응답 데이터로 교체하면 됩니다.
+const BESTSELLERS: Book[] = [
+  { title: "소년이 온다", author: "한강", pages: 216, category: "novel", supported: true },
+  { title: "모순", author: "양귀자", pages: 308, category: "novel", supported: true },
+  { title: "초역 부처의 말", author: "코이케 류노스케", pages: 264, category: "humanities", supported: true },
+  { title: "내가 틀릴 수도 있습니다", author: "비욘 나티코 린데블라드", pages: 312, category: "essay", supported: true },
+  { title: "도둑맞은 집중력", author: "요한 하리", pages: 464, category: "humanities", supported: true },
+  { title: "불변의 법칙", author: "모건 하우절", pages: 420, category: "selfhelp", supported: true },
+];
+
 function formatMinutes(minutes: number) {
   const hours = Math.floor(minutes / 60);
   const rest = minutes % 60;
@@ -331,17 +341,43 @@ export default function Home() {
           <p className="search-message">{searchMessage}{demoMode && " · sample mode"}</p>
 
           {books.length > 0 && (
-            <div className="book-grid">
-              {books.map((book) => (
-                <button key={book.title} className="book-card" onClick={() => chooseBook(book)}>
+            <div className="search-results">
+              <div className="book-section-heading">
+                <p>검색 결과</p>
+                <h2>찾으신 책이에요</h2>
+              </div>
+              <div className="book-grid">
+                {books.map((book) => (
+                  <button key={book.title} className="book-card" onClick={() => chooseBook(book)}>
+                    <span className="book-cover">{book.title.slice(0, 1)}</span>
+                    <strong>{book.title}</strong>
+                    <small>{book.author}</small>
+                    <span>{book.pages || "?"}쪽 · {book.supported ? "시간 예측" : "예측 미지원"}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="bestseller-section">
+            <div className="book-section-heading">
+              <p>지금 많이 읽는 책</p>
+              <h2>알라딘 베스트셀러</h2>
+              <span>먼저 둘러보고, 마음에 드는 책을 바로 골라보세요.</span>
+            </div>
+            <div className="bestseller-list">
+              {BESTSELLERS.map((book, index) => (
+                <button key={book.title} className="book-card bestseller-card" onClick={() => chooseBook(book)}>
+                  <span className="rank">{String(index + 1).padStart(2, "0")}</span>
                   <span className="book-cover">{book.title.slice(0, 1)}</span>
                   <strong>{book.title}</strong>
                   <small>{book.author}</small>
-                  <span>{book.pages || "?"}쪽 · {book.supported ? "시간 예측" : "예측 미지원"}</span>
+                  <span>{book.pages}쪽 · 예상 시간 보기</span>
                 </button>
               ))}
             </div>
-          )}
+            <p className="data-note">현재는 화면 구성을 위한 예시 목록이며, 추후 알라딘 API 데이터로 업데이트됩니다.</p>
+          </div>
         </section>
       )}
 
