@@ -157,8 +157,10 @@ export default function Home() {
   const recommendations = useMemo(() => {
     if (!selected) return [];
     const pool = [...books, ...bestsellers, ...SAMPLE_BOOKS];
+    const booksWithCovers = pool.filter((book) => book.cover);
+    const recommendationPool = booksWithCovers.length >= 3 ? booksWithCovers : pool;
     const unique = new Map<string, Book>();
-    pool
+    recommendationPool
       .filter((book) => book.supported && book.title !== selected.title)
       .sort((a, b) => {
         const genreScoreA = a.category === selected.category ? 0 : 1;
@@ -488,7 +490,7 @@ export default function Home() {
                     {book.cover ? <img src={book.cover} alt={`${book.title} 표지`} /> : book.title.slice(0, 1)}
                   </span>
                   <strong>{book.title}</strong>
-                  <small>{book.author} · {book.pages}쪽</small>
+                  <small>{book.author} · {book.pages ? `${book.pages}쪽` : "페이지 선택 시 확인"}</small>
                 </button>
               ))}
             </div>
