@@ -2,7 +2,7 @@
 //
 // 중요: 부하 테스트 때 알라딘(남의 서버)을 수천 번 때리면 안 된다.
 // 그래서 USE_MOCK 으로 목(mock) 응답을 쓴다. 로컬/부하 실험에서는 목이 기본.
-// 실제 호출은 ALADIN_TTB_KEY 가 있고 USE_MOCK=0 일 때만.
+// 실제 호출은 ALADIN_TTB_KEY가 있으면 기본으로 사용하고, USE_MOCK=1일 때만 목을 쓴다.
 
 // 알라딘 카테고리명 → 우리 내부 장르 키
 function categorize(categoryName = '') {
@@ -48,26 +48,49 @@ function normalizeAladin(item) {
     pages: item.subInfo?.itemPage ?? item.itemPage ?? 0,
     category,
     categoryName: item.categoryName,
-    isbn: item.isbn13,
+    isbn: item.isbn13 || item.isbn,
+    cover: item.cover ?? '',
+    description: item.description ?? '',
+    publisher: item.publisher ?? '',
+    publishedAt: item.pubDate ?? '',
+    link: item.link ?? '',
   });
+}
+
+function createRequestUrl(path, ttbKey) {
+  const url = new URL(`https://www.aladin.co.kr/ttb/api/${path}`);
+  url.searchParams.set('ttbkey', ttbKey);
+  url.searchParams.set('MaxResults', '12');
+  url.searchParams.set('start', '1');
+  url.searchParams.set('SearchTarget', 'Book');
+  url.searchParams.set('Cover', 'Big');
+  url.searchParams.set('Output', 'js');
+  url.searchParams.set('Version', '20131101');
+  url.searchParams.set('OptResult', 'itemPage');
+  return url;
+}
+
+async function requestAladin(url) {
+  const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
+  if (!res.ok) throw new Error(`Aladin API ${res.status}`);
+  const data = await res.json();
+  if (data.errorCode) throw new Error(`Aladin API ${data.errorCode}: ${data.errorMessage}`);
+  return (data.item ?? []).map(normalizeAladin);
 }
 
 export async function searchBooks(query, { useMock, ttbKey } = {}) {
   if (useMock || !ttbKey) return mockSearch(query);
 
-  const url = new URL('http://www.aladin.co.kr/ttb/api/ItemSearch.aspx');
-  url.searchParams.set('ttbkey', ttbKey);
+  const url = createRequestUrl('ItemSearch.aspx', ttbKey);
   url.searchParams.set('Query', query);
-  url.searchParams.set('QueryType', 'Title');
-  url.searchParams.set('MaxResults', '10');
-  url.searchParams.set('SearchTarget', 'Book');
-  url.searchParams.set('Cover', 'None');
-  url.searchParams.set('Output', 'js');
-  url.searchParams.set('Version', '20131101');
-  url.searchParams.set('OptResult', 'itemPage');
+  url.searchParams.set('QueryType', 'Keyword');
+  return requestAladin(url);
+}
 
-  const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
-  if (!res.ok) throw new Error(`Aladin API ${res.status}`);
-  const data = await res.json();
-  return (data.item ?? []).map(normalizeAladin);
+export async function listBestsellers({ useMock, ttbKey } = {}) {
+  if (useMock || !ttbKey) return MOCK_BOOKS.map(decorate);
+
+  const url = createRequestUrl('ItemList.aspx', ttbKey);
+  url.searchParams.set('QueryType', 'Bestseller');
+  return requestAladin(url);
 }

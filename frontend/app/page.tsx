@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 
 type Genre = "novel" | "essay" | "humanities" | "selfhelp";
 type Step = "calibrate" | "search" | "result";
@@ -12,6 +12,12 @@ type Book = {
   pages: number;
   category: string;
   supported: boolean;
+  isbn?: string;
+  cover?: string;
+  description?: string;
+  publisher?: string;
+  publishedAt?: string;
+  link?: string;
 };
 
 type Prediction = {
@@ -81,7 +87,6 @@ const SAMPLE_BOOKS: Book[] = [
   { title: "슬램덩크 1", author: "이노우에 다케히코", pages: 190, category: "comic", supported: false },
 ];
 
-// 알라딘 ItemList API를 연결하면 이 배열만 응답 데이터로 교체하면 됩니다.
 const BESTSELLERS: Book[] = [
   { title: "소년이 온다", author: "한강", pages: 216, category: "novel", supported: true },
   { title: "모순", author: "양귀자", pages: 308, category: "novel", supported: true },
@@ -120,12 +125,33 @@ export default function Home() {
   const [selected, setSelected] = useState<Book | null>(null);
   const [prediction, setPrediction] = useState<Prediction | null>(null);
   const [searchMessage, setSearchMessage] = useState("읽고 싶은 책의 제목을 검색하세요.");
+  const [bestsellers, setBestsellers] = useState<Book[]>(BESTSELLERS);
+  const [bestsellerDemoMode, setBestsellerDemoMode] = useState(false);
 
   const passage = PASSAGES[genre];
   const charCount = passage.text.replace(/\s/g, "").length;
   const wordCount = passage.text.trim().split(/\s+/).length;
   const genreName = GENRES.find((item) => item.id === genre)?.label ?? "책";
   const speedGuide = getReadingSpeedGuide(wpm);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    async function loadBestsellers() {
+      try {
+        const response = await fetch(`${API_BASE}/api/bestsellers`, { signal: controller.signal });
+        if (!response.ok) throw new Error();
+        const data = await response.json();
+        if (Array.isArray(data.items) && data.items.length) {
+          setBestsellers(data.items);
+          setBestsellerDemoMode(false);
+        }
+      } catch (error) {
+        if ((error as Error).name !== "AbortError") setBestsellerDemoMode(true);
+      }
+    }
+    loadBestsellers();
+    return () => controller.abort();
+  }, []);
 
   const recommendations = useMemo(() => {
     if (!selected) return [];
@@ -349,7 +375,9 @@ export default function Home() {
               <div className="book-grid">
                 {books.map((book) => (
                   <button key={book.title} className="book-card" onClick={() => chooseBook(book)}>
-                    <span className="book-cover">{book.title.slice(0, 1)}</span>
+                    <span className="book-cover">
+                      {book.cover ? <img src={book.cover} alt="" /> : book.title.slice(0, 1)}
+                    </span>
                     <strong>{book.title}</strong>
                     <small>{book.author}</small>
                     <span>{book.pages || "?"}쪽 · {book.supported ? "시간 예측" : "예측 미지원"}</span>
@@ -366,17 +394,19 @@ export default function Home() {
               <span>먼저 둘러보고, 마음에 드는 책을 바로 골라보세요.</span>
             </div>
             <div className="bestseller-list">
-              {BESTSELLERS.map((book, index) => (
+              {bestsellers.map((book, index) => (
                 <button key={book.title} className="book-card bestseller-card" onClick={() => chooseBook(book)}>
                   <span className="rank">{String(index + 1).padStart(2, "0")}</span>
-                  <span className="book-cover">{book.title.slice(0, 1)}</span>
+                  <span className="book-cover">
+                    {book.cover ? <img src={book.cover} alt="" /> : book.title.slice(0, 1)}
+                  </span>
                   <strong>{book.title}</strong>
                   <small>{book.author}</small>
                   <span>{book.pages}쪽 · 예상 시간 보기</span>
                 </button>
               ))}
             </div>
-            <p className="data-note">현재는 화면 구성을 위한 예시 목록이며, 추후 알라딘 API 데이터로 업데이트됩니다.</p>
+            {bestsellerDemoMode && <p className="data-note">백엔드 연결 전이라 예시 목록을 보여드리고 있어요.</p>}
           </div>
         </section>
       )}
@@ -384,10 +414,17 @@ export default function Home() {
       {step === "result" && selected && prediction && (
         <section className="result-screen">
           <div className="result-hero">
-            <div className="result-book-cover">{selected.title.slice(0, 1)}</div>
+            <div className="result-book-cover">
+              {selected.cover ? <img src={selected.cover} alt={`${selected.title} 표지`} /> : selected.title.slice(0, 1)}
+            </div>
             <div>
-              <p>{selected.author} · {selected.pages}쪽</p>
+              <p>
+                {selected.author}
+                {selected.publisher && ` · ${selected.publisher}`}
+                {` · ${selected.pages}쪽`}
+              </p>
               <h1>{selected.title}</h1>
+              {selected.description && <p className="book-description">{selected.description}</p>}
               <p className="result-copy">지금 속도로 읽으면</p>
               <div className="result-time">{formatMinutes(prediction.minutes)}</div>
               <span>예상 범위 {formatMinutes(prediction.range.low)} – {formatMinutes(prediction.range.high)}</span>

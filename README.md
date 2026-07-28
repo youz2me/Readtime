@@ -30,6 +30,22 @@ npm install
 npm run dev          # http://localhost:8080
 ```
 
+알라딘 OpenAPI를 연결하려면 키를 로컬 환경파일에 넣는다.
+
+```bash
+cp backend/.env.example backend/.env
+# backend/.env의 ALADIN_TTB_KEY에 발급받은 TTB Key 입력
+```
+
+프론트엔드도 백엔드 주소용 환경파일을 준비한다.
+
+```bash
+cp frontend/.env.example frontend/.env.local
+cd frontend
+npm install
+npm run dev          # http://localhost:3000
+```
+
 세 가지 체크포인트:
 1. **CPU 부하 경로** — `GET /internal/load?ms=200` 이 이벤트 루프를 태운다(스케일 실험용).
 2. **/metrics** — `GET /metrics` 가 Prometheus 포맷 지표(프로세스 CPU/메모리/요청 지연)를 뱉는다.

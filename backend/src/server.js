@@ -2,11 +2,11 @@ import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import { register, httpDuration, httpTotal } from './metrics.js';
 import { predict } from './predict.js';
-import { searchBooks } from './aladin.js';
+import { listBestsellers, searchBooks } from './aladin.js';
 
 const PORT = Number(process.env.PORT ?? 8080);
 const HOST = process.env.HOST ?? '0.0.0.0'; // 컨테이너에서 외부 접근 가능하게
-const USE_MOCK = process.env.USE_MOCK !== '0'; // 기본 목 사용(알라딘 서버 보호)
+const USE_MOCK = process.env.USE_MOCK === '1';
 
 // Fastify 내장 로거(pino)는 JSON 로그를 뱉는다 → 판2에서 Loki로 수집하기 좋다.
 const app = Fastify({ logger: true });
@@ -47,6 +47,11 @@ app.get('/api/search', async (req) => {
   if (!q) return { items: [] };
   const items = await searchBooks(q, { useMock: USE_MOCK, ttbKey: process.env.ALADIN_TTB_KEY });
   return { query: q, count: items.length, items };
+});
+
+app.get('/api/bestsellers', async () => {
+  const items = await listBestsellers({ useMock: USE_MOCK, ttbKey: process.env.ALADIN_TTB_KEY });
+  return { count: items.length, items };
 });
 
 // --- 완독 시간 예측 ---
