@@ -14,63 +14,7 @@
 
 ## 인프라 설계
 
-```mermaid
-flowchart TB
-    User([사용자])
-
-    subgraph Edge["웹 서비스"]
-        direction LR
-        Frontend["▲ Vercel<br/><b>readtime.youjinlee.com</b>"]
-        DNS["Gabia DNS<br/><b>api.youjinlee.com</b>"]
-        Frontend -->|"HTTPS API 요청"| DNS
-    end
-
-    subgraph AWS["AWS · ap-northeast-2"]
-        direction TB
-
-        subgraph VPC["VPC · 10.0.0.0/16"]
-            direction LR
-
-            subgraph Public["Public Subnet · 10.0.1.0/24"]
-                Service["EC2 · Docker<br/><b>Caddy + Fastify API</b><br/>Elastic IP"]
-            end
-
-            subgraph Private["Private Subnet · 10.0.2.0/24"]
-                direction TB
-                Prometheus["Prometheus<br/><small>metrics collection</small>"]
-                Grafana["Grafana<br/><small>dashboard</small>"]
-                Grafana --> Prometheus
-            end
-
-            Prometheus -.->|"GET /metrics · :8080"| Service
-        end
-
-        Parameter["🔐 SSM Parameter Store<br/><small>Aladin API Key</small>"] -.-> Service
-        Session["SSM Session Manager"] -.->|"port forwarding · :3000"| Grafana
-    end
-
-    Admin([운영자]) -.-> Session
-    User --> Frontend
-    DNS -->|"HTTPS · :443"| Service
-
-    classDef user fill:#111827,color:#fff,stroke:#111827,stroke-width:2px;
-    classDef edge fill:#fff7ed,color:#9a3412,stroke:#fb923c,stroke-width:1.5px;
-    classDef service fill:#eff6ff,color:#1e3a8a,stroke:#3b82f6,stroke-width:2px;
-    classDef observe fill:#f0fdf4,color:#166534,stroke:#22c55e,stroke-width:1.5px;
-    classDef secure fill:#faf5ff,color:#6b21a8,stroke:#a855f7,stroke-width:1.5px;
-
-    class User,Admin user;
-    class Frontend,DNS edge;
-    class Service service;
-    class Prometheus,Grafana observe;
-    class Parameter,Session secure;
-
-    style Edge fill:#fffbeb,stroke:#fed7aa,stroke-width:1px
-    style AWS fill:#f8fafc,stroke:#94a3b8,stroke-width:2px
-    style VPC fill:#ffffff,stroke:#cbd5e1,stroke-width:1.5px
-    style Public fill:#eff6ff,stroke:#93c5fd,stroke-dasharray:5 3
-    style Private fill:#f0fdf4,stroke:#86efac,stroke-dasharray:5 3
-```
+![Readtime 인프라 아키텍처](assets/readtime-architecture.png)
 
 프론트엔드는 Vercel에서 제공하고, 백엔드는 AWS 퍼블릭 서브넷의 EC2에서 Docker
 컨테이너로 실행합니다. Caddy가 HTTPS 인증서와 리버스 프록시를 담당하며 서비스
