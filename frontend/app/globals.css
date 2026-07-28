@@ -55,11 +55,6 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--blue); outl
 .quiet-state > p { margin: 0 0 14px; color: var(--muted); font-size: 14px; }
 .quiet-state h2, .complete-view h2, .question-view h2 { margin: 0; font-size: 30px; font-weight: 500; }
 .quiet-state > span, .complete-view > span { margin-top: 12px; color: var(--muted); font-size: 14px; line-height: 1.5; }
-.sample-passage-options { width: min(100%, 620px); margin-top: 28px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-.sample-passage-options button { min-height: 72px; padding: 14px 16px; display: grid; align-content: center; gap: 5px; border: 1px solid var(--line); border-radius: 8px; color: var(--ink); background: var(--white); text-align: left; }
-.sample-passage-options button.selected { color: var(--white); border-color: var(--ink); background: var(--ink); }
-.sample-passage-options small { color: inherit; opacity: .65; font-size: 11px; }
-.sample-passage-options strong { font-size: 14px; font-weight: 500; }
 .primary, .secondary { min-width: 200px; min-height: 44px; padding: 4px 20px; border: 3px solid transparent; border-radius: 4px; font-size: 14px; font-weight: 500; }
 .primary { color: var(--white); background: var(--blue); }
 .primary:hover { background: #3457b1; }
@@ -165,7 +160,6 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--blue); outl
   .screen-heading h1 { font-size: 34px; }
   .genre-options { grid-template-columns: 1fr; }
   .genre-options button { min-height: 82px; }
-  .sample-passage-options { grid-template-columns: 1fr; }
   .test-stage { min-height: 360px; }
   .action-pair, .result-actions { width: 100%; flex-direction: column; }
   .primary, .secondary { width: 100%; }

@@ -9,9 +9,10 @@ function categorize(categoryName = '') {
   const c = categoryName;
   if (/만화|코믹/.test(c)) return 'comic';
   if (/어린이|유아/.test(c)) return 'children';
-  if (/시|에세이\/시/.test(c) && /시집|시\//.test(c)) return 'poetry';
   if (/그림책/.test(c)) return 'picturebook';
   if (/사진|화보|도감/.test(c)) return 'photo';
+  if (/시집/.test(c)) return 'poetry';
+  if (/소설|희곡/.test(c)) return 'novel';
   if (/에세이/.test(c)) return 'essay';
   if (/인문/.test(c)) return 'humanities';
   if (/자기계발/.test(c)) return 'selfhelp';
