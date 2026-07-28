@@ -1,0 +1,19 @@
+node_modules/
+npm-debug.log*
+
+# 플러그인/툴 상태 파일
+.omc/
+.env
+.env.*
+!.env.example
+.DS_Store
+*.log
+dist/
+coverage/
+
+# terraform (infra/ 에서 나중에)
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example

@@ -1,0 +1,100 @@
+import Fastify from 'fastify';
+import cors from '@fastify/cors';
+import { register, httpDuration, httpTotal } from './metrics.js';
+import { predict } from './predict.js';
+import { searchBooks } from './aladin.js';
+
+const PORT = Number(process.env.PORT ?? 8080);
+const HOST = process.env.HOST ?? '0.0.0.0'; // 컨테이너에서 외부 접근 가능하게
+const USE_MOCK = process.env.USE_MOCK !== '0'; // 기본 목 사용(알라딘 서버 보호)
+
+// Fastify 내장 로거(pino)는 JSON 로그를 뱉는다 → 판2에서 Loki로 수집하기 좋다.
+const app = Fastify({ logger: true });
+
+await app.register(cors, {
+  origin: process.env.CORS_ORIGIN
+    ? process.env.CORS_ORIGIN.split(',').map((origin) => origin.trim())
+    : ['http://localhost:3000'],
+  methods: ['GET', 'POST'],
+});
+
+// --- 지표 수집 훅: 모든 요청의 지연/카운트를 기록 ---
+app.addHook('onRequest', (req, _reply, done) => {
+  req.startAt = process.hrtime.bigint();
+  done();
+});
+app.addHook('onResponse', (req, reply, done) => {
+  const route = req.routeOptions?.url ?? req.url;
+  const labels = { method: req.method, route, status: reply.statusCode };
+  const seconds = Number(process.hrtime.bigint() - req.startAt) / 1e9;
+  httpDuration.observe(labels, seconds);
+  httpTotal.inc(labels);
+  done();
+});
+
+// --- 헬스체크 ---
+app.get('/healthz', async () => ({ status: 'ok' }));
+
+// --- Prometheus 지표 노출 (체크포인트 ②) ---
+app.get('/metrics', async (_req, reply) => {
+  reply.header('Content-Type', register.contentType);
+  return register.metrics();
+});
+
+// --- 책 검색 ---
+app.get('/api/search', async (req) => {
+  const q = String(req.query.q ?? '').trim();
+  if (!q) return { items: [] };
+  const items = await searchBooks(q, { useMock: USE_MOCK, ttbKey: process.env.ALADIN_TTB_KEY });
+  return { query: q, count: items.length, items };
+});
+
+// --- 완독 시간 예측 ---
+app.post(
+  '/api/predict',
+  {
+    schema: {
+      body: {
+        type: 'object',
+        required: ['pages'],
+        properties: {
+          pages: { type: 'number', minimum: 1 },
+          category: { type: 'string' },
+          cpm: { type: 'number', minimum: 1 },
+          favorites: { type: 'array', items: { type: 'string' } },
+        },
+      },
+    },
+  },
+  async (req) => predict(req.body),
+);
+
+// --- CPU 부하 경로 (체크포인트 ①) ---
+// 스케일 실험 전용. 제품 기능이 아니라 "재현 가능한 CPU 부하 훅"임을 명시한다.
+// 동기 busy-loop라 이벤트 루프를 블로킹 → t3.micro 단일 vCPU 포화를 확실히 재현.
+if (process.env.ENABLE_LOAD_ENDPOINT !== '0') {
+  app.get('/internal/load', async (req) => {
+    const ms = Math.min(Math.max(Number(req.query.ms ?? 50), 1), 2000);
+    const end = Date.now() + ms;
+    let sink = 0;
+    while (Date.now() < end) sink += Math.sqrt(Math.random());
+    return { burnedMs: ms, sink };
+  });
+}
+
+app
+  .listen({ port: PORT, host: HOST })
+  .then(() => app.log.info(`readtime-backend up (mock=${USE_MOCK})`))
+  .catch((err) => {
+    app.log.error(err);
+    process.exit(1);
+  });
+
+// 컨테이너 종료 시그널을 받아 깔끔히 닫는다 (graceful shutdown)
+for (const sig of ['SIGINT', 'SIGTERM']) {
+  process.on(sig, async () => {
+    app.log.info(`${sig} 수신 — 종료`);
+    await app.close();
+    process.exit(0);
+  });
+}

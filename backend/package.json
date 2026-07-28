@@ -1,0 +1,19 @@
+{
+  "name": "readtime-backend",
+  "version": "0.1.0",
+  "description": "책 완독 시간 예측 API + Prometheus metrics (인프라 부하 측정 대상)",
+  "type": "module",
+  "private": true,
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js"
+  },
+  "dependencies": {
+    "@fastify/cors": "^11.3.0",
+    "fastify": "^5.2.0",
+    "prom-client": "^15.1.3"
+  }
+}
