@@ -1,0 +1,11 @@
+aws_region     = "ap-northeast-2"
+project_name   = "readtime"
+environment    = "as-is"
+
+api_domain     = "api.youjinlee.com"
+frontend_origin = "https://readtime.youjinlee.com"
+
+# Route53를 사용하지 않으면 빈 문자열을 유지하고 DNS 제공자에서 A 레코드를 만든다.
+route53_zone_id = ""
+
+aladin_ttb_key_parameter_name = "/readtime/prod/aladin-ttb-key"

@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+dnf update -y
+dnf install -y docker
+systemctl enable --now docker
+
+install -d -m 0755 /opt/readtime-observability
+
+cat >/opt/readtime-observability/prometheus.yml <<'EOF'
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: readtime-backend
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+          - "${service_private_ip}:8080"
+EOF
+
+docker network create readtime-observability
+docker volume create readtime-prometheus-data
+docker volume create readtime-grafana-data
+
+docker run -d \
+  --name prometheus \
+  --restart unless-stopped \
+  --network readtime-observability \
+  -p 9090:9090 \
+  -v /opt/readtime-observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro \
+  -v readtime-prometheus-data:/prometheus \
+  prom/prometheus:latest
+
+docker run -d \
+  --name grafana \
+  --restart unless-stopped \
+  --network readtime-observability \
+  -p 3000:3000 \
+  -v readtime-grafana-data:/var/lib/grafana \
+  grafana/grafana-oss:latest

@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+dnf update -y
+dnf install -y docker git
+systemctl enable --now docker
+
+install -d -m 0755 /opt/readtime
+git clone --branch "${repository_ref}" --depth 1 "${repository_url}" /opt/readtime/source
+
+for attempt in $(seq 1 12); do
+  if ALADIN_TTB_KEY="$(aws ssm get-parameter \
+    --region "${aws_region}" \
+    --name "${parameter_name}" \
+    --with-decryption \
+    --query 'Parameter.Value' \
+    --output text)"; then
+    break
+  fi
+  sleep 10
+done
+
+test -n "$${ALADIN_TTB_KEY:-}"
+
+docker build -t readtime-backend:local /opt/readtime/source/backend
+docker network create readtime
+
+docker run -d \
+  --name readtime-backend \
+  --restart unless-stopped \
+  --network readtime \
+  -p 8080:8080 \
+  -e ALADIN_TTB_KEY="$ALADIN_TTB_KEY" \
+  -e USE_MOCK=0 \
+  -e CORS_ORIGIN="${frontend_origin}" \
+  -e ENABLE_LOAD_ENDPOINT=1 \
+  readtime-backend:local
+
+cat >/opt/readtime/Caddyfile <<'EOF'
+${api_domain} {
+  @metrics path /metrics
+  respond @metrics 404
+  reverse_proxy readtime-backend:8080
+}
+EOF
+
+docker volume create readtime-caddy-data
+docker volume create readtime-caddy-config
+docker run -d \
+  --name readtime-caddy \
+  --restart unless-stopped \
+  --network readtime \
+  -p 80:80 \
+  -p 443:443 \
+  -v /opt/readtime/Caddyfile:/etc/caddy/Caddyfile:ro \
+  -v readtime-caddy-data:/data \
+  -v readtime-caddy-config:/config \
+  caddy:2-alpine
