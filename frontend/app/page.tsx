@@ -25,7 +25,8 @@ type Prediction = {
   range: { low: number; high: number };
 };
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL
+  ?? (process.env.NODE_ENV === "development" ? "http://localhost:8080" : "");
 const IS_LOCAL = API_BASE.includes("localhost") || API_BASE.includes("127.0.0.1");
 
 const GENRES: Array<{ id: Genre; label: string; caption: string }> = [
