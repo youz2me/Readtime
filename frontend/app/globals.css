@@ -128,7 +128,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--blue); outl
 .data-note { margin: 24px 0 0; color: var(--muted); font-size: 11px; }
 
 .result-screen { min-height: calc(100vh - 64px); }
-.result-hero { min-height: calc(100svh - 64px); padding: clamp(36px, 6vh, 64px) max(40px, calc((100vw - 1100px) / 2)); display: grid; grid-template-columns: minmax(220px, 330px) 1fr; gap: clamp(48px, 8vw, 110px); align-items: center; background: var(--ash); }
+.result-hero { padding: 48px max(40px, calc((100vw - 1100px) / 2)); display: grid; grid-template-columns: minmax(220px, 330px) 1fr; gap: clamp(48px, 8vw, 110px); align-items: start; background: var(--ash); }
 .result-book-cover { width: 100%; max-width: 380px; font-size: 92px; }
 .result-book-cover { overflow: hidden; }
 .result-book-cover img { width: 100%; height: 100%; display: block; object-fit: cover; }
@@ -159,7 +159,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--blue); outl
   .screen { width: min(100% - 32px, 1120px); min-height: calc(100svh - 56px); padding: 28px 0 32px; }
   .genre-options { grid-template-columns: 1fr 1fr; }
   .book-grid, .bestseller-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .result-hero { min-height: calc(100svh - 56px); padding: 28px 24px 34px; grid-template-columns: minmax(130px, 30vw) 1fr; gap: 28px; }
+  .result-hero { padding: 28px 24px 34px; grid-template-columns: minmax(130px, 30vw) 1fr; gap: 28px; }
   .result-book-cover { max-width: 230px; margin: 0 auto; }
   .result-facts { margin-top: 28px; gap: 16px; }
   .recommend-grid { grid-template-columns: repeat(2, minmax(0, 180px)); }
@@ -193,7 +193,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--blue); outl
   .search-results { margin-bottom: 64px; }
   .bestseller-section { padding-top: 38px; }
   .book-section-heading h2 { font-size: 25px; }
-  .result-hero { min-height: calc(100svh - 56px); padding: 20px 18px 24px; grid-template-columns: 112px 1fr; gap: 18px; align-content: center; }
+  .result-hero { padding: 20px 18px 24px; grid-template-columns: 112px 1fr; gap: 18px; align-content: start; }
   .result-hero h1 { font-size: 28px; }
   .result-book-cover { align-self: start; }
   .book-description { max-height: 4.8em; overflow: hidden; }
