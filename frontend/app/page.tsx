@@ -94,7 +94,7 @@ export default function Home() {
   const [startedAt, setStartedAt] = useState<number | null>(null);
   const [elapsed, setElapsed] = useState<number | null>(null);
   const [cpm, setCpm] = useState(500);
-  const [testMessage, setTestMessage] = useState("장르를 고르고 평소처럼 읽어보세요.");
+  const [toast, setToast] = useState<{ id: number; message: string } | null>(null);
   const [query, setQuery] = useState("");
   const [books, setBooks] = useState<Book[]>([]);
   const [searching, setSearching] = useState(false);
@@ -129,13 +129,19 @@ export default function Home() {
     setPhase("ready");
     setStartedAt(null);
     setElapsed(null);
-    setTestMessage("장르를 고르고 평소처럼 읽어보세요.");
+  }
+
+  function showToast(message: string) {
+    const id = Date.now();
+    setToast({ id, message });
+    window.setTimeout(() => {
+      setToast((current) => current?.id === id ? null : current);
+    }, 3600);
   }
 
   function startTest() {
     setPhase("reading");
     setStartedAt(Date.now());
-    setTestMessage("내용을 이해하며 읽고, 끝나면 완료를 눌러주세요.");
   }
 
   function finishTest() {
@@ -143,24 +149,22 @@ export default function Home() {
     const seconds = Math.max(1, (Date.now() - startedAt) / 1000);
     if (seconds < 8) {
       resetTest();
-      setTestMessage("측정 시간이 너무 짧아요. 처음부터 다시 읽어주세요.");
+      showToast("측정 시간이 너무 짧아 결과를 저장하지 않았어요. 글을 처음부터 다시 읽어주세요.");
       return;
     }
     setElapsed(seconds);
     setPhase("question");
-    setTestMessage("마지막으로 내용 확인 문제를 풀어주세요.");
   }
 
   function answer(index: number) {
     if (index !== passage.correct || !elapsed) {
       resetTest();
-      setTestMessage("내용 확인에 실패해 이번 측정은 제외했어요.");
+      showToast("내용 확인에 실패해 이번 측정은 제외했어요. 다시 측정해주세요.");
       return;
     }
     const measured = Math.round(charCount / (elapsed / 60));
     setCpm(Math.min(1200, Math.max(150, measured)));
     setPhase("complete");
-    setTestMessage(`${Math.round(elapsed)}초 동안 ${charCount}자를 읽었어요.`);
   }
 
   async function searchBooks(event: FormEvent) {
@@ -254,15 +258,15 @@ export default function Home() {
             {phase === "ready" && (
               <div className="quiet-state">
                 <p>{genreName} 예시 글 · 약 {charCount}자</p>
-                <h2>준비되면 시작하세요.</h2>
-                <span>시작 버튼을 누르면 글과 타이머가 동시에 나타납니다.</span>
+                <h2>글을 읽고 질문에 답해보세요.</h2>
+                <span>시작 버튼을 누르면 글과 타이머가 함께 나타납니다.<br />끝까지 읽은 뒤 내용 확인 질문에 답해야 측정이 완료돼요.</span>
                 <button className="primary" onClick={startTest}>읽기 시작</button>
               </div>
             )}
 
             {phase === "reading" && (
               <div className="reading-view">
-                <div className="reading-meta"><span>{genreName} 예시 글</span><span>측정 중</span></div>
+                <div className="reading-meta"><span>{genreName} 예시 글 · 읽은 뒤 질문 1개</span><span>측정 중</span></div>
                 <article>{passage.text}</article>
                 <button className="primary wide" onClick={finishTest}>다 읽었어요</button>
               </div>
@@ -284,7 +288,7 @@ export default function Home() {
               <div className="complete-view">
                 <p>측정 완료</p>
                 <h2>분당 <strong>{cpm}자</strong>를 읽어요.</h2>
-                <span>{testMessage} 이제 이 속도로 책의 완독 시간을 계산할게요.</span>
+                <span>{Math.round(elapsed ?? 0)}초 동안 {charCount}자를 읽었어요. 이제 이 속도로 책의 완독 시간을 계산할게요.</span>
                 <div className="action-pair">
                   <button className="primary" onClick={() => go("search")}>책 검색하기</button>
                   <button className="secondary" onClick={() => resetTest()}>다시 측정</button>
@@ -292,7 +296,6 @@ export default function Home() {
               </div>
             )}
           </div>
-          <p className="status-message">{testMessage}</p>
         </section>
       )}
 
@@ -364,6 +367,14 @@ export default function Home() {
             <button className="secondary" onClick={() => go("calibrate")}>속도 다시 측정</button>
           </div>
         </section>
+      )}
+
+      {toast && (
+        <div className="toast" role="alert" aria-live="assertive">
+          <span aria-hidden="true">!</span>
+          <p>{toast.message}</p>
+          <button type="button" aria-label="알림 닫기" onClick={() => setToast(null)}>×</button>
+        </div>
       )}
     </main>
   );
