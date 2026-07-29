@@ -42,6 +42,11 @@ app.addHook('onResponse', (req, reply, done) => {
   const statusCode = reply.statusCode;
   const status = statusCode >= 500 ? 'error' : statusCode >= 400 ? 'warn' : 'success';
   const message = req.requestError?.message ?? `${req.method} ${route} ${statusCode}`;
+  const trafficSource = route === '/healthz' || route === '/metrics' || route.startsWith('/internal/')
+    ? 'system'
+    : req.headers['x-traffic-source'] === 'manual'
+      ? 'manual'
+      : 'user';
   const labels = { method: req.method, route, status: statusCode };
   const seconds = Number(process.hrtime.bigint() - req.startAt) / 1e9;
   httpDuration.observe(labels, seconds);
@@ -52,6 +57,7 @@ app.addHook('onResponse', (req, reply, done) => {
     message,
     method: req.method,
     route,
+    trafficSource,
     responseTime: Math.round(seconds * 1000 * 100) / 100,
   };
   if (statusCode >= 500) req.log.error(log);
