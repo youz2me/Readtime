@@ -585,9 +585,9 @@ export default function Home() {
       {step === "calibrate" && (
         <section className={`screen calibration-screen phase-${phase}`}>
           <div className="screen-heading">
-            <p>먼저 읽기 속도를 재요</p>
-            <h1>평소 읽는 장르로<br />속도를 측정해보세요.</h1>
-            <p className="lead">짧은 글을 읽고 질문 하나에 답하면 끝나요. 약 2분 걸려요.</p>
+            <p>읽을 책에 맞춰 속도를 재요</p>
+            <h1>어떤 장르의 책을<br />읽으실 건가요?</h1>
+            <p className="lead">고른 장르와 비슷한 글을 드려요. 평소처럼 읽으면 그 속도로 완독 시간을 계산해요.</p>
           </div>
 
           <div className="genre-options">
@@ -602,11 +602,11 @@ export default function Home() {
           <div className="test-stage">
             {phase === "ready" && (
               <div className="quiet-state">
-                <p>{genreName} 글 · 약 {wordCount}단어</p>
-                <h2>준비되면 글을 읽어 주세요.</h2>
-                <span>읽기를 누르면 바로 측정해요.<br />다 읽은 뒤 질문 하나에 답하면 속도를 알려드려요.</span>
+                <p>{genreName} 책과 비슷한 글 · 약 {wordCount}단어</p>
+                <h2>선택한 장르에 맞는 글이에요.</h2>
+                <span>평소 책을 읽듯 편하게 읽어 주세요.<br />다 읽고 질문 하나에 답하면 속도를 알려드려요.</span>
                 <div className="action-pair">
-                  <button className="primary" onClick={(event) => startTest(true, event.timeStamp)}>예시 글 읽기</button>
+                  <button className="primary" onClick={(event) => startTest(true, event.timeStamp)}>이 글로 속도 재기</button>
                   {IS_LOCAL && (
                     <button className="secondary" onClick={skipCalibration}>
                       측정 건너뛰기
@@ -642,7 +642,7 @@ export default function Home() {
                 <p>속도를 다 쟀어요</p>
                 <h2>1분에 약 <strong>{wpm}단어</strong>를 읽는 편이에요.</h2>
                 <div className="speed-guide">
-                  <strong>짧은 예시 글 기준 · {speedGuide}</strong>
+                  <strong>{genreName} 글 기준 · {speedGuide}</strong>
                   <span>한국 사람의 평균 읽기 속도는 1분에 약 202단어예요.</span>
                   <small>책의 난이도와 익숙한 정도에 따라 실제 속도는 달라질 수 있어요.</small>
                 </div>
@@ -738,7 +738,7 @@ export default function Home() {
                 <span className="result-range">보통 {formatMinutes(prediction.range.low)}~{formatMinutes(prediction.range.high)} 걸려요.</span>
                 <div className="result-facts">
                   <div><strong>약 {wpm}단어</strong><span>1분에 읽는 양</span></div>
-                  <div><strong>{genreName}</strong><span>속도를 잰 장르</span></div>
+                  <div><strong>{genreName}</strong><span>선택한 책 장르</span></div>
                   <div><strong>약 ±{formatMinutes(Math.max(
                     prediction.minutes - prediction.range.low,
                     prediction.range.high - prediction.minutes,
