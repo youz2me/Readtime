@@ -44,6 +44,45 @@ const GENRES: Array<{ id: Genre; label: string; caption: string }> = [
 
 type Passage = { title: string; text: string; question: string; answers: string[]; correct: number };
 
+const READ_PASSAGE_HISTORY_KEY = "readtime:read-passage-history:v1";
+
+function selectUnreadPassageIndex(genre: Genre, passages: Passage[]) {
+  const allIndexes = passages.map((_, index) => index);
+  if (allIndexes.length <= 1 || typeof window === "undefined") return 0;
+
+  try {
+    const stored = window.localStorage.getItem(READ_PASSAGE_HISTORY_KEY);
+    const parsed = stored ? JSON.parse(stored) : {};
+    const history = parsed && typeof parsed === "object"
+      ? parsed as Partial<Record<Genre, string[]>>
+      : {};
+    const validTitles = new Set(passages.map((passage) => passage.title));
+    const seenTitles = Array.isArray(history[genre])
+      ? [...new Set(history[genre].filter((title): title is string => (
+        typeof title === "string" && validTitles.has(title)
+      )))]
+      : [];
+    const seenSet = new Set(seenTitles);
+    let candidates = allIndexes.filter((index) => !seenSet.has(passages[index].title));
+    let nextHistory = seenTitles;
+
+    if (!candidates.length) {
+      const lastTitle = seenTitles.at(-1);
+      candidates = allIndexes.filter((index) => passages[index].title !== lastTitle);
+      nextHistory = [];
+    }
+
+    const selectedIndex = candidates[Math.floor(Math.random() * candidates.length)];
+    window.localStorage.setItem(READ_PASSAGE_HISTORY_KEY, JSON.stringify({
+      ...history,
+      [genre]: [...nextHistory, passages[selectedIndex].title],
+    }));
+    return selectedIndex;
+  } catch {
+    return Math.floor(Math.random() * passages.length);
+  }
+}
+
 const PASSAGE_EXTENSIONS: Record<string, string> = {
   "옥상 정원": "두 사람은 물을 주는 요일을 나누고, 비가 온 날에는 화분 아래에 고인 물을 함께 비웠다. 계절이 바뀌자 꽃은 졌지만 새 잎이 돋았다. 옥상은 이제 잠깐 인사를 나누는 작은 정원이 되었다.",
   "파란 우체통": "친구는 갑작스러운 전화에 잠시 놀랐지만 이내 예전처럼 웃었다. 두 사람은 미뤄둔 이야기부터 꺼내지 않았다. 대신 이번 주말에 만나자는 약속을 먼저 잡았다. 유나는 우체통에 넣었던 편지가 어디로 갔는지 더는 궁금하지 않았다.",
@@ -418,10 +457,14 @@ export default function Home() {
   }
 
   function startTest(random: boolean, timestamp: number) {
-    if (random) setPassageIndex(Math.floor(Math.random() * genrePassages.length));
+    const selectedIndex = random
+      ? selectUnreadPassageIndex(genre, genrePassages)
+      : passageIndex;
+    const selectedPassage = genrePassages[selectedIndex] ?? genrePassages[0];
+    if (random) setPassageIndex(selectedIndex);
     trackEvent("reading_started", {
       genre,
-      word_count: wordCount,
+      word_count: selectedPassage.text.trim().split(/\s+/).length,
     });
     setPhase("reading");
     setStartedAt(timestamp);
