@@ -1,28 +1,30 @@
 "use client";
 
-import * as amplitude from "@amplitude/analytics-browser";
+import * as amplitude from "@amplitude/unified";
 
-const API_KEY = process.env.NEXT_PUBLIC_AMPLITUDE_API_KEY;
-const environment = process.env.NODE_ENV === "production" ? "production" : "development";
+const API_KEY = "6abccb1e76f4ef62ab36570242a097ca";
+const IS_PRODUCTION = process.env.NODE_ENV === "production";
 
 let initialized = false;
 
 export function initializeAnalytics() {
-  if (initialized || !API_KEY || typeof window === "undefined") return;
+  if (initialized || !IS_PRODUCTION || typeof window === "undefined") return;
 
-  amplitude.init(API_KEY, {
-    autocapture: false,
-    trackingOptions: {
-      ipAddress: false,
+  initialized = true;
+  amplitude.initAll(API_KEY, {
+    analytics: {
+      autocapture: true,
+    },
+    sessionReplay: {
+      sampleRate: 1,
     },
   });
-  initialized = true;
 }
 
 export function trackEvent(name: string, properties: Record<string, string | number | boolean> = {}) {
   if (!initialized) return;
   amplitude.track(name, {
     ...properties,
-    environment,
+    environment: "production",
   });
 }
