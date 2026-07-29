@@ -1,4 +1,4 @@
-import Fastify from 'fastify';
+import Fastify, { LogController } from 'fastify';
 import cors from '@fastify/cors';
 import { register, httpDuration, httpTotal } from './metrics.js';
 import { predict } from './predict.js';
@@ -8,8 +8,18 @@ const PORT = Number(process.env.PORT ?? 8080);
 const HOST = process.env.HOST ?? '0.0.0.0'; // 컨테이너에서 외부 접근 가능하게
 const USE_MOCK = process.env.USE_MOCK === '1';
 
-// Fastify 내장 로거(pino)는 JSON 로그를 뱉는다 → 판2에서 Loki로 수집하기 좋다.
-const app = Fastify({ logger: true });
+// 문자열 로그 레벨을 포함한 JSON 로그를 출력해 Loki/Grafana에서 바로 분류할 수 있게 한다.
+const app = Fastify({
+  logController: new LogController({ disableRequestLogging: true }),
+  logger: {
+    level: process.env.LOG_LEVEL ?? 'info',
+    formatters: {
+      level(label) {
+        return { level: label };
+      },
+    },
+  },
+});
 
 await app.register(cors, {
   origin: process.env.CORS_ORIGIN
@@ -29,10 +39,29 @@ app.addHook('onResponse', (req, reply, done) => {
     return;
   }
   const route = req.routeOptions?.url ?? req.url;
-  const labels = { method: req.method, route, status: reply.statusCode };
+  const statusCode = reply.statusCode;
+  const status = statusCode >= 500 ? 'error' : statusCode >= 400 ? 'warn' : 'success';
+  const message = req.requestError?.message ?? `${req.method} ${route} ${statusCode}`;
+  const labels = { method: req.method, route, status: statusCode };
   const seconds = Number(process.hrtime.bigint() - req.startAt) / 1e9;
   httpDuration.observe(labels, seconds);
   httpTotal.inc(labels);
+  const log = {
+    status,
+    statusCode,
+    message,
+    method: req.method,
+    route,
+    responseTime: Math.round(seconds * 1000 * 100) / 100,
+  };
+  if (statusCode >= 500) req.log.error(log);
+  else if (statusCode >= 400) req.log.warn(log);
+  else req.log.info(log);
+  done();
+});
+
+app.addHook('onError', (req, _reply, error, done) => {
+  req.requestError = error;
   done();
 });
 
@@ -102,16 +131,29 @@ if (process.env.ENABLE_LOAD_ENDPOINT !== '0') {
 
 app
   .listen({ port: PORT, host: HOST })
-  .then(() => app.log.info(`readtime-backend up (mock=${USE_MOCK})`))
+  .then(() => app.log.info({
+    status: 'success',
+    statusCode: 200,
+    message: `readtime-backend up (mock=${USE_MOCK})`,
+  }))
   .catch((err) => {
-    app.log.error(err);
+    app.log.error({
+      status: 'error',
+      statusCode: 500,
+      message: err.message,
+      err,
+    });
     process.exit(1);
   });
 
 // 컨테이너 종료 시그널을 받아 깔끔히 닫는다 (graceful shutdown)
 for (const sig of ['SIGINT', 'SIGTERM']) {
   process.on(sig, async () => {
-    app.log.info(`${sig} 수신 — 종료`);
+    app.log.info({
+      status: 'success',
+      statusCode: 200,
+      message: `${sig} 수신 — 종료`,
+    });
     await app.close();
     process.exit(0);
   });
