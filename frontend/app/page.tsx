@@ -2,6 +2,7 @@
 
 import { FormEvent, MouseEvent, useEffect, useMemo, useState } from "react";
 import { ADDITIONAL_PASSAGES } from "./additional-passages";
+import { initializeAnalytics, trackEvent } from "./analytics";
 
 type Genre = "novel" | "essay" | "humanities" | "selfhelp";
 type Step = "calibrate" | "search" | "result";
@@ -357,6 +358,10 @@ export default function Home() {
   const speedGuide = getReadingSpeedGuide(wpm);
 
   useEffect(() => {
+    initializeAnalytics();
+  }, []);
+
+  useEffect(() => {
     const controller = new AbortController();
     async function loadBestsellers() {
       try {
@@ -414,6 +419,10 @@ export default function Home() {
 
   function startTest(random: boolean, timestamp: number) {
     if (random) setPassageIndex(Math.floor(Math.random() * genrePassages.length));
+    trackEvent("reading_started", {
+      genre,
+      word_count: wordCount,
+    });
     setPhase("reading");
     setStartedAt(timestamp);
   }
@@ -438,8 +447,16 @@ export default function Home() {
     }
     const measuredCpm = Math.round(charCount / (elapsed / 60));
     const measuredWpm = Math.round(wordCount / (elapsed / 60));
-    setCpm(Math.min(1200, Math.max(150, measuredCpm)));
-    setWpm(Math.min(500, Math.max(50, measuredWpm)));
+    const nextCpm = Math.min(1200, Math.max(150, measuredCpm));
+    const nextWpm = Math.min(500, Math.max(50, measuredWpm));
+    setCpm(nextCpm);
+    setWpm(nextWpm);
+    trackEvent("reading_completed", {
+      genre,
+      word_count: wordCount,
+      elapsed_seconds: Math.round(elapsed),
+      measured_wpm: nextWpm,
+    });
     setPhase("complete");
   }
 
@@ -456,12 +473,22 @@ export default function Home() {
       if (!response.ok) throw new Error();
       const data = await response.json();
       setBooks(data.items);
+      trackEvent("book_searched", {
+        result_count: data.count ?? data.items.length,
+        query_length: query.trim().length,
+        used_fallback: false,
+      });
       setSearchMessage(data.count ? `${data.count}권을 찾았어요. 책을 고르면 완독 시간을 보여드려요.` : "검색 결과가 없어요. 제목이나 저자를 다시 확인해 주세요.");
     } catch {
       const hits = SAMPLE_BOOKS.filter((book) =>
         `${book.title} ${book.author}`.toLowerCase().includes(query.trim().toLowerCase()),
       );
       setBooks(hits.length ? hits : SAMPLE_BOOKS);
+      trackEvent("book_searched", {
+        result_count: hits.length ? hits.length : SAMPLE_BOOKS.length,
+        query_length: query.trim().length,
+        used_fallback: true,
+      });
       setSearchMessage("검색 서비스에 연결하지 못해 예시 책을 보여드려요.");
     } finally {
       setSearching(false);
@@ -490,12 +517,18 @@ export default function Home() {
       return;
     }
     setSelected(resolvedBook);
+    trackEvent("book_selected", {
+      category: resolvedBook.category,
+      pages: resolvedBook.pages,
+    });
     const localEstimate = () => {
       const charsPerPage = { novel: 600, essay: 500, humanities: 700, selfhelp: 680 }[resolvedBook.category] ?? 620;
       const coefficient = resolvedBook.category === genre ? 0.9 : 1.15;
       const minutes = Math.max(1, Math.round((resolvedBook.pages * charsPerPage * coefficient) / cpm));
       return { minutes, range: { low: Math.round(minutes * 0.78), high: Math.round(minutes * 1.22) } };
     };
+    let nextPrediction: Prediction;
+    let usedFallback = false;
     try {
       const response = await fetch(`${API_BASE}/api/predict`, {
         method: "POST",
@@ -504,10 +537,18 @@ export default function Home() {
       });
       if (!response.ok) throw new Error();
       const data = await response.json();
-      setPrediction({ minutes: data.minutes, range: data.range });
+      nextPrediction = { minutes: data.minutes, range: data.range };
     } catch {
-      setPrediction(localEstimate());
+      nextPrediction = localEstimate();
+      usedFallback = true;
     }
+    setPrediction(nextPrediction);
+    trackEvent("prediction_viewed", {
+      category: resolvedBook.category,
+      pages: resolvedBook.pages,
+      predicted_minutes: nextPrediction.minutes,
+      used_fallback: usedFallback,
+    });
     setStep("result");
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
