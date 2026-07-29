@@ -27,6 +27,10 @@ SecureString으로 관리합니다.
 
 AWS 네트워크, 보안 그룹, IAM, EC2 및 관측 환경은 Terraform으로 관리합니다.
 
+## API 및 관측 흐름
+
+![Readtime API 및 관측 흐름](assets/readtime-api-flow.png)
+
 ## 기술 구성
 
 | 영역 | 기술 |
